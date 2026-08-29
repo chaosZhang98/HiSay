@@ -19,6 +19,7 @@ import type {
   ScheduledTaskItem,
   TaskRunItem,
 } from "@agent/shared";
+import { createUuid } from "./uuid";
 
 type EventListener = {
   onMessage?: (msg: AguiMessage) => void;
@@ -183,7 +184,7 @@ class WebSocketClient {
   sendMessage(conversationId: string, content: string) {
     const event: UserMessageEvent = {
       type: "user_message",
-      messageId: crypto.randomUUID(),
+      messageId: createUuid(),
       conversationId,
       content,
       timestamp: new Date().toISOString(),

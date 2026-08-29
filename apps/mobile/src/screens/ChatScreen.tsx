@@ -12,6 +12,8 @@ import {
   Platform,
   Alert,
   Dimensions,
+  type NativeSyntheticEvent,
+  type TextInputKeyPressEventData,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +27,7 @@ import PullDownMenu, { PullDownMenuHandle } from "../components/PullDownMenu";
 import { MiniAppCenter, MyMiniApps } from "../components/MiniAppPanel";
 import { colors, radius, spacing, shadows, typography } from "../theme";
 import { triggerHaptic } from "../lib/haptic";
+import { createUuid } from "../lib/uuid";
 import {
   requestNotificationPermission,
   showTaskResultNotification,
@@ -201,22 +204,71 @@ export default function ChatScreen({
     };
   }, []);
 
-  const handleSend = () => {
-    const text = input.trim();
-    // 等待服务端 session_info 提供会话 ID 后才能发送
-    if (!text || isStreaming || !conversationId) return;
+  // Hardware Shift+Enter: skip the following submit and keep/insert a newline.
+  const skipSubmitRef = useRef(false);
 
-    const msgId = crypto.randomUUID();
-    addMessage({ id: msgId, role: "user", content: text, createdAt: new Date().toISOString() });
+  const trySend = (raw: string): boolean => {
+    const text = raw.trim();
+    // 等待服务端 session_info 提供会话 ID 后才能发送
+    if (!text || isStreaming || !conversationId) return false;
+
+    const msgId = createUuid();
+    addMessage({
+      id: msgId,
+      role: "user",
+      content: text,
+      createdAt: new Date().toISOString(),
+    });
     setInput("");
 
-    // 创建空的 agent 消息占位
-    const agentMsgId = crypto.randomUUID();
-    addMessage({ id: agentMsgId, role: "agent", content: "", createdAt: new Date().toISOString() });
+    const agentMsgId = createUuid();
+    addMessage({
+      id: agentMsgId,
+      role: "agent",
+      content: "",
+      createdAt: new Date().toISOString(),
+    });
     setStreaming(true);
     useChatStore.setState({ streamingMessageId: agentMsgId });
 
     wsClient.sendMessage(conversationId, text);
+    return true;
+  };
+
+  const handleSend = () => {
+    trySend(input);
+  };
+
+  const handleComposerKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData & { shiftKey?: boolean }>
+  ) => {
+    if (e.nativeEvent.key !== "Enter") return;
+    skipSubmitRef.current = Boolean(e.nativeEvent.shiftKey);
+  };
+
+  const handleComposerSubmit = () => {
+    if (skipSubmitRef.current) {
+      skipSubmitRef.current = false;
+      setInput((prev) => (prev.endsWith("\n") ? prev : `${prev}\n`));
+      return;
+    }
+    trySend(input);
+  };
+
+  // Software-keyboard fallback: some iOS multiline fields still append `\n`
+  // on Return even with submitBehavior="submit".
+  const handleComposerChangeText = (text: string) => {
+    if (
+      !skipSubmitRef.current &&
+      text.endsWith("\n") &&
+      text.slice(0, -1) === input
+    ) {
+      if (!trySend(text.slice(0, -1))) {
+        setInput(text.slice(0, -1));
+      }
+      return;
+    }
+    setInput(text);
   };
 
   // 切换会话：先清空当前消息，再向服务端拉取该会话历史
@@ -503,38 +555,42 @@ export default function ChatScreen({
                     <TextInput
                       style={styles.homeInput}
                       value={input}
-                      onChangeText={setInput}
+                      onChangeText={handleComposerChangeText}
                       placeholder="尽管问..."
                       placeholderTextColor={colors.home.placeholder}
                       editable={!isStreaming}
+                      multiline
                       returnKeyType="send"
-                      onSubmitEditing={handleSend}
-                      multiline={false}
+                      submitBehavior="submit"
+                      blurOnSubmit
+                      onSubmitEditing={handleComposerSubmit}
+                      onKeyPress={handleComposerKeyPress}
+                      textAlignVertical="center"
                     />
-                    <TouchableOpacity
-                      style={styles.homeInputVoice}
-                      onPress={onVoicePress}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      activeOpacity={0.6}
-                    >
-                      <Ionicons name="mic" size={20} color={colors.home.iconTint} />
-                    </TouchableOpacity>
+                    {input.trim() ? (
+                      <TouchableOpacity
+                        style={styles.homeSendButton}
+                        onPress={handleSend}
+                        disabled={isStreaming || !conversationId}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name="arrow-up"
+                          size={18}
+                          color={colors.onPrimary}
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.homeInputVoice}
+                        onPress={onVoicePress}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        activeOpacity={0.6}
+                      >
+                        <Ionicons name="mic" size={20} color={colors.home.iconTint} />
+                      </TouchableOpacity>
+                    )}
                   </View>
-                  {/* 输入内容时显示发送按钮（覆盖"语音"）：保持发送契约不被破坏 */}
-                  {input.trim() ? (
-                    <TouchableOpacity
-                      style={styles.homeSendButton}
-                      onPress={handleSend}
-                      disabled={isStreaming || !conversationId}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name="arrow-up"
-                        size={18}
-                        color={colors.onPrimary}
-                      />
-                    </TouchableOpacity>
-                  ) : null}
                   <Text style={styles.homeDisclaimer}>内容由 AI 生成</Text>
                 </View>
               </View>
@@ -565,26 +621,38 @@ export default function ChatScreen({
 
                 {/* 输入区域 */}
                 <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.textInput}
-                    value={input}
-                    onChangeText={setInput}
-                    placeholder="输入消息..."
-                    placeholderTextColor={colors.textTertiary}
-                    editable={!isStreaming}
-                    multiline
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.sendButton,
-                      (!input.trim() || isStreaming) &&
-                        styles.sendButtonDisabled,
-                    ]}
-                    onPress={handleSend}
-                    disabled={!input.trim() || isStreaming}
-                  >
-                    <Ionicons name="arrow-up" size={20} color={colors.onPrimary} />
-                  </TouchableOpacity>
+                  <View style={styles.inputCapsule}>
+                    <TextInput
+                      style={styles.textInput}
+                      value={input}
+                      onChangeText={handleComposerChangeText}
+                      placeholder="输入消息..."
+                      placeholderTextColor={colors.textTertiary}
+                      editable={!isStreaming}
+                      multiline
+                      returnKeyType="send"
+                      submitBehavior="submit"
+                      blurOnSubmit
+                      onSubmitEditing={handleComposerSubmit}
+                      onKeyPress={handleComposerKeyPress}
+                      textAlignVertical="center"
+                    />
+                    <TouchableOpacity
+                      style={[
+                        styles.sendButton,
+                        (!input.trim() || isStreaming) &&
+                          styles.sendButtonDisabled,
+                      ]}
+                      onPress={handleSend}
+                      disabled={!input.trim() || isStreaming}
+                    >
+                      <Ionicons
+                        name="arrow-up"
+                        size={18}
+                        color={colors.onPrimary}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </>
             )}
@@ -833,24 +901,30 @@ const styles = StyleSheet.create({
   msgTimeUser: { color: colors.textSecondary },
   // ---- 输入区 ----
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    padding: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.sm + 2,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     backgroundColor: "#FFFFFF",
   },
+  inputCapsule: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: 22,
+    paddingVertical: 4,
+    paddingLeft: 4,
+    paddingRight: 4,
+    minHeight: 44,
+  },
   textInput: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 36,
     maxHeight: 110,
-    borderWidth: 1,
-    borderColor: "transparent",
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
     fontSize: 15,
-    backgroundColor: colors.background,
     color: colors.textPrimary,
   },
   sendButton: {
@@ -860,7 +934,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: spacing.sm,
   },
   sendButtonDisabled: { backgroundColor: colors.disabled },
   // ---- 弹窗通用 ----
@@ -1118,7 +1191,7 @@ const styles = StyleSheet.create({
     borderColor: colors.home.inputBorder,
     borderRadius: 30,
     paddingHorizontal: 6,
-    height: 60,
+    minHeight: 60,
   },
   homeInputPlus: {
     width: 44,
@@ -1132,6 +1205,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: spacing.sm,
     paddingVertical: 10,
+    maxHeight: 80,
     fontSize: 17,
     color: colors.home.title,
   },
@@ -1144,9 +1218,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   homeSendButton: {
-    position: "absolute",
-    right: spacing.md + 6,
-    top: 8,
     width: 44,
     height: 44,
     borderRadius: 22,
