@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Agent iOS App · Figma UI 设计规格</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<style>
+  :root{
+    /* —— 浅色主题（聊天 / 任务 / 小程序） —— */
+    --bg-light:#F2F2F7;
+    --card-light:#FFFFFF;
+    --primary:#007AFF;
+    --primary-pressed:#0A84FF;
+    --primary-soft:#EAF2FF;
+    --danger:#FF3B30;
+    --danger-soft:#FDECEA;
+    --success:#34C759;
+    --warning:#FF9500;
+    --text-1:#1C1C1E;
+    --text-2:#6C6C70;
+    --text-3:#AEAEB2;
+    --border-light:#E5E5EA;
+
+    /* —— 深色主题（Kimi 主页） —— */
+    --home-bg:#0A0A0A;
+    --home-surface:#121214;
+    --home-chip:#1A1A1E;
+    --home-chip-border:rgba(120,120,128,0.18);
+    --home-icon:rgba(255,255,255,0.85);
+    --home-title:#FFFFFF;
+    --home-sub:rgba(255,255,255,0.72);
+    --home-tertiary:rgba(255,255,255,0.42);
+    --home-mascot:#4A7BFF;
+    --home-mascot-2:#6B93FF;
+    --home-mascot-eye:#FFFFFF;
+    --home-input:#141416;
+    --home-input-border:rgba(255,255,255,0.14);
+    --home-placeholder:rgba(255,255,255,0.38);
+    --home-dot:#0A84FF;
+
+    /* 系统 */
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:16px;
+    --radius-xl:20px;
+    --radius-full:999px;
+
+    /* MiniApp 辅助色 */
+    --app-green:#34C759;
+    --app-blue:#007AFF;
+
+    /* 画布用色 */
+    --canvas-bg:#EEF0F5;
+    --doc-bg:#FFFFFF;
+    --doc-text:#1C1C1E;
+    --doc-muted:#6C6C70;
+    --doc-divider:#E5E5EA;
+    --section-1:#F7F7F9;
+
+    --font: 'Inter','-apple-system','SF Pro Text','PingFang SC',sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--canvas-bg);color:var(--doc-text);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  a{color:var(--primary);text-decoration:none}
+
+  /* 文档顶部 */
+  header.site{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--doc-divider);
+  }
+  header.site .inner{max-width:1680px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+  header.site h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px}
+  header.site .subtitle{color:var(--doc-muted);font-size:13px}
+  header.site nav{margin-left:auto;display:flex;gap:14px}
+  header.site nav a{
+    padding:7px 12px;border-radius:10px;font-size:13px;color:var(--doc-text);
+    border:1px solid transparent;
+  }
+  header.site nav a:hover{background:var(--section-1);border-color:var(--doc-divider)}
+
+  main{max-width:1680px;margin:0 auto;padding:24px}
+  section{margin-bottom:40px}
+  h2.section-title{
+    margin:0 0 16px;font-size:22px;font-weight:700;letter-spacing:.2px;
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.section-title::before{content:"";width:4px;height:20px;border-radius:2px;background:var(--primary)}
+  h3.sub{font-size:16px;font-weight:600;margin:24px 0 12px;color:var(--doc-text)}
+  p.lead{color:var(--doc-muted);margin:0 0 18px;font-size:14px;line-height:1.6}
+
+  /* Token 卡片 */
+  .token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .swatch{
+    background:#fff;border:1px solid var(--doc-divider);border-radius:var(--radius-md);overflow:hidden;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .swatch .patch{height:72px;position:relative}
+  .swatch .patch span{
+    position:absolute;right:8px;top:8px;padding:3px 7px;border-radius:6px;
+    background:rgba(255,255,255,0.9);font-size:11px;font-weight:600;color:#1C1C1E;
+    border:1px solid rgba(0,0,0,.06)
+  }
+  .swatch .patch.dark span{background:rgba(0,0,0,.35);color:#fff;border-color:rgba(255,255,255,.12)}
+  .swatch .meta{padding:10px 12px}
+  .swatch .name{font-size:13px;font-weight:600;color:var(--doc-text)}
+  .swatch .hex{font-size:12px;color:var(--doc-muted);margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* 规范组 */
+  .rules{
+    background:#fff;border:1px solid var(--doc-divider);border-radius:var(--radius-lg);
+    padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03)
+  }
+  .rules table{width:100%;border-collapse:collapse;font-size:13px}
+  .rules th,.rules td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--doc-divider)}
+  .rules th{background:var(--section-1);font-weight:600;color:#444}
+  .rules tr:last-child td{border-bottom:none}
+  .chip{
+    display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;
+    background:var(--primary-soft);color:var(--primary);border:1px solid rgba(0,122,255,0.14)
+  }
+  .chip.grey{background:#F2F2F7;color:#6C6C70;border-color:#E5E5EA}
+
+  /* 页面画布 */
+  .screens{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:28px;
+  }
+  .screen-artboard{
+    background:#fff;border:1px solid var(--doc-divider);border-radius:18px;padding:20px;
+    box-shadow:0 6px 18px rgba(15,23,42,.05);
+    display:flex;flex-direction:column;
+  }
+  .screen-artboard h4{margin:0 0 14px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .screen-artboard h4 .tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:#F2F2F7;color:#6C6C70;border:1px solid #E5E5EA}
+  .screen-artboard h4 .tag.dark{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.12)}
+  .phone-wrap{
+    width:100%;display:flex;justify-content:center;align-items:flex-start;padding:8px;
+    background:
+      radial-gradient(1200px 500px at 50% 0%, rgba(99,102,241,0.08), transparent 60%),
+      linear-gradient(180deg,#F7F8FC 0%, #EEF0F5 100%);
+    border-radius:14px;border:1px solid var(--doc-divider);
+  }
+
+  /* ====== iPhone 画框（390x844，iOS 设计稿标准） ====== */
+  .iphone{
+    position:relative;width:390px;height:844px;border-radius:54px;
+    background:#000;
+    box-shadow:
+      0 0 0 12px #1a1a1c,
+      0 24px 48px rgba(15,23,42,.18);
+    overflow:hidden;
+  }
+  /* 动态岛 */
+  .iphone .dynamic-island{
+    position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:124px;height:36px;border-radius:22px;background:#000;z-index:20;
+  }
+  /* 状态栏 */
+  .iphone .status-bar{
+    position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 32px 6px;font-size:15px;font-weight:600;color:#1C1C1E;z-index:15;letter-spacing:.2px;
+  }
+  .iphone .status-bar.dark{color:#fff}
+  .iphone .status-bar .right{display:flex;align-items:center;gap:6px}
+  .iphone .status-bar .signal svg,.iphone .status-bar .wifi svg,.iphone .status-bar .battery svg{display:block}
+  .iphone .screen{
+    position:absolute;inset:0;top:0;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .iphone .screen.theme-light{background:var(--bg-light);color:var(--text-1)}
+  .iphone .screen.theme-home{background:var(--home-bg);color:var(--home-title)}
+  .iphone .screen.theme-app{background:#F7F7F9;color:var(--text-1)}
+
+  /* Safe 区域占位 */
+  .safe-top{height:54px;flex-shrink:0}
+  .safe-bottom{height:34px;flex-shrink:0}
+
+  /* ==== 通用组件 ==== */
+  .row{display:flex;align-items:center}
+  .spacer{flex:1}
+  .circle-btn{
+    width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.06);color:#fff;
+    backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.06);
+    position:relative;cursor:pointer;
+  }
+  .circle-btn .dot{
+    position:absolute;top:10px;left:10px;width:9px;height:9px;border-radius:50%;background:var(--home-dot);
+    box-shadow:0 0 0 2px var(--home-bg);
+  }
+  .segment{
+    height:38px;padding:3px;border-radius:12px;background:rgba(255,255,255,.07);
+    display:flex;align-items:center;gap:2px;border:1px solid rgba(255,255,255,.06);
+  }
+  .segment .item{
+    padding:0 16px;height:32px;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;font-size:14px;font-weight:600;color:rgba(255,255,255,.6);
+  }
+  .segment .item.active{background:#fff;color:#1C1C1E;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .sound-btn{
+    width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.06);color:#fff;position:relative;
+    border:1px solid rgba(255,255,255,.06);cursor:pointer;
+  }
+  .sound-btn .slash{
+    position:absolute;width:28px;height:1.5px;background:#fff;transform:rotate(45deg);border-radius:2px;opacity:.85
+  }
+
+  /* ==== 主页 Home ==== */
+  .home-header{
+    padding:10px 18px 0;display:flex;align-items:center;gap:12px;
+  }
+  .home-body{
+    flex:1;padding:0 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding-bottom:80px;
+  }
+  .mascot{
+    width:92px;height:92px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, var(--home-mascot-2) 0%, var(--home-mascot) 60%, #3864E6 100%);
+    position:relative;box-shadow:0 10px 30px rgba(74,123,255,.35), inset 0 -8px 24px rgba(0,0,0,.22);
+  }
+  .mascot::after{
+    content:"";position:absolute;inset:-6px;border-radius:50%;
+    border:2px solid rgba(255,255,255,.08);
+    box-shadow:0 0 0 6px rgba(255,255,255,.03);
+  }
+  .mascot .eye{
+    position:absolute;top:32px;width:9px;height:18px;border-radius:6px;background:#fff;
+  }
+  .mascot .eye.l{left:28px;transform:rotate(-8deg)}
+  .mascot .eye.r{right:28px;transform:rotate(8deg)}
+  .greeting{margin-top:26px;font-size:24px;font-weight:600;color:#fff;letter-spacing:.3px}
+  .greeting-sub{margin-top:6px;font-size:15px;color:var(--home-sub)}
+  .chip-scroll{
+    position:absolute;left:0;right:0;bottom:120px;padding:0 18px;
+    display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  .chip-scroll::-webkit-scrollbar{display:none}
+  .home-chip{
+    flex-shrink:0;height:44px;padding:0 14px;border-radius:18px;
+    background:var(--home-chip);border:1px solid var(--home-chip-border);
+    display:flex;align-items:center;gap:8px;color:var(--home-icon);font-size:14px;font-weight:500;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .home-chip i{font-size:18px}
+  .home-input-capsule{
+    position:absolute;left:16px;right:16px;bottom:66px;height:60px;
+    border-radius:30px;background:var(--home-input);
+    border:1px solid var(--home-input-border);
+    display:flex;align-items:center;padding:0 8px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .home-input-capsule .plus{
+    width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.06);color:#fff;flex-shrink:0;margin-right:4px;
+  }
+  .home-input-capsule .field{flex:1;color:#fff;font-size:16px}
+  .home-input-capsule .field .ph{color:var(--home-placeholder);font-size:16px}
+  .home-input-capsule .mic{
+    width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.06);color:#fff;flex-shrink:0;
+  }
+  .home-send{
+    position:absolute;top:-6px;right:8px;width:48px;height:48px;border-radius:50%;
+    background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px rgba(0,122,255,.45);
+  }
+  .home-disclaimer{
+    position:absolute;left:0;right:0;bottom:38px;text-align:center;font-size:12px;color:var(--home-tertiary);
+  }
+
+  /* ==== 聊天页 Chat ==== */
+  .chat-header{
+    padding:6px 12px 10px;height:54px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border-light);background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
+  }
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);
+  }
+  .icon-btn:hover{background:rgba(0,122,255,.08)}
+  .chat-title{font-size:17px;font-weight:600;color:var(--text-1);flex:1;text-align:center}
+  .chat-list{
+    flex:1;padding:8px 16px 12px;overflow:hidden;display:flex;flex-direction:column;gap:10px;
+  }
+  .msg{display:flex;gap:8px;align-items:flex-end}
+  .msg.user{flex-direction:row-reverse}
+  .avatar{
+    width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--border-light);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+  }
+  .avatar.user{background:linear-gradient(135deg,#FF9500,#FF3B30);color:#fff;font-weight:700;font-size:13px}
+  .avatar.agent{background:#fff;color:var(--primary);font-size:14px}
+  .bubble{
+    max-width:260px;padding:10px 14px;border-radius:20px;font-size:15px;line-height:21px;color:var(--text-1);
+    word-break:break-word;
+  }
+  .bubble.user{background:var(--primary);color:#fff;border-bottom-right-radius:6px}
+  .bubble.agent{background:#fff;color:var(--text-1);border:1px solid var(--border-light);border-bottom-left-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .time{font-size:11px;color:var(--text-3);margin-top:3px;text-align:center}
+  .typing{display:flex;gap:4px;padding:6px 4px}
+  .typing span{width:6px;height:6px;border-radius:50%;background:#AEAEB2;animation:typing 1.2s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}
+  .typing span:nth-child(3){animation-delay:.3s}
+  @keyframes typing{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+  .chat-input-bar{
+    padding:8px 12px 4px;display:flex;align-items:flex-end;gap:8px;border-top:1px solid var(--border-light);background:#fff;
+  }
+  .chat-input{
+    flex:1;min-height:40px;padding:10px 14px;border-radius:20px;background:#F2F2F7;border:1px solid #E5E5EA;
+    font-size:15px;color:var(--text-1);
+  }
+  .chat-send{
+    width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .chat-send.disabled{background:#AEAEB2}
+  .pull-grabber{
+    position:absolute;top:6px;left:50%;transform:translateX(-50%);
+    width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);z-index:10;
+  }
+  .theme-light .pull-grabber{background:rgba(0,0,0,.14)}
+
+  /* ==== 左抽屉 Drawer ==== */
+  .drawer-overlay{
+    position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:40;
+  }
+  .drawer{
+    position:absolute;top:0;bottom:0;left:0;width:82%;background:#fff;z-index:41;
+    border-top-right-radius:24px;border-bottom-right-radius:24px;
+    display:flex;flex-direction:column;padding:54px 0 20px;overflow:hidden;
+    box-shadow:12px 0 40px rgba(0,0,0,.18);
+  }
+  .drawer .user-row{padding:8px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--doc-divider)}
+  .drawer .avatar{width:40px;height:40px;font-size:15px}
+  .drawer .user-name{font-size:16px;font-weight:600;flex:1}
+  .drawer .badge{
+    padding:2px 8px;border-radius:999px;background:#F2F2F7;color:#6C6C70;font-size:11px;font-weight:600;
+    border:1px solid #E5E5EA;
+  }
+  .drawer .menu{padding:12px 10px;border-bottom:1px solid var(--doc-divider)}
+  .drawer .menu-item{
+    padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:12px;font-size:15px;color:var(--text-1);
+  }
+  .drawer .menu-item:hover{background:#F2F2F7}
+  .drawer .menu-item i{font-size:20px;color:var(--text-2)}
+  .drawer .section{padding:14px 20px 6px;display:flex;align-items:center;justify-content:space-between}
+  .drawer .section .title{font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+  .drawer .new-conv{
+    margin:2px 14px 8px;padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:10px;
+    background:var(--primary-soft);color:var(--primary);font-size:14px;font-weight:600;
+  }
+  .drawer .new-conv i{font-size:18px}
+  .drawer .conv-list{flex:1;padding:4px 10px 10px;overflow:hidden}
+  .drawer .conv-item{
+    padding:10px 12px;border-radius:12px;display:flex;align-items:center;gap:8px;
+  }
+  .drawer .conv-item.active{background:#F2F2F7}
+  .drawer .conv-item .title{flex:1;font-size:14px;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drawer .conv-item.active .title{color:var(--primary);font-weight:600}
+  .drawer .conv-item .dot{width:7px;height:7px;border-radius:50%;background:var(--primary)}
+  .drawer .conv-item .more{width:30px;height:30px;border-radius:8px;color:var(--text-3);display:flex;align-items:center;justify-content:center}
+  .drawer .search{margin:10px 14px 0;padding:8px 12px;border-radius:12px;background:#F2F2F7;display:flex;align-items:center;gap:8px}
+  .drawer .search i{color:var(--text-3);font-size:16px}
+  .drawer .search input{flex:1;background:transparent;border:0;outline:0;font-size:14px;color:var(--text-1)}
+
+  /* ==== 下拉小程序中心 MiniApp Panel · v2 深色沉浸式 ==== */
+  .miniapp-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:30}
+  .miniapp-panel{
+    position:absolute;left:0;right:0;top:54px;height:360px;z-index:31;
+    background:#1C1C1E;border-top-left-radius:20px;border-top-right-radius:20px;
+    overflow:hidden;box-shadow:0 -12px 40px rgba(0,0,0,.35);padding:0;
+  }
+  .miniapp-panel .grab{
+    position:absolute;left:0;right:0;top:6px;z-index:5;
+    width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin:0 auto;
+  }
+  .immersed{padding:12px 16px 0;position:relative;height:100%;display:flex;flex-direction:column;color:#fff}
+  .im-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 0 12px;cursor:pointer;user-select:none;
+  }
+  .im-row .chev{font-size:20px;color:rgba(255,255,255,.85)}
+  .im-row .t{font-size:17px;font-weight:600;letter-spacing:.3px;color:#fff}
+  .im-row .sp{width:20px}
+  .search-dark{
+    height:44px;border-radius:10px;background:rgba(120,120,128,.24);
+    border:1px solid rgba(255,255,255,.06);
+    display:flex;align-items:center;padding:0 14px;gap:6px;
+  }
+  .search-dark i{color:rgba(255,255,255,.55);font-size:16px}
+  .search-dark .ph{flex:1;color:rgba(255,255,255,.45);font-size:15px}
+  .grid4{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    margin-top:22px;position:relative;gap:6px 0;
+  }
+  .grid-cell{display:flex;flex-direction:column;align-items:center;padding:0 2px 14px}
+  .round-icon{
+    width:60px;height:60px;border-radius:30px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px rgba(0,0,0,.35);
+  }
+  .round-icon i{font-size:28px;color:#fff}
+  .round-icon.c-red{background:#E50914}
+  .round-icon.c-blue{background:#0085FF}
+  .round-icon.c-brown{background:#8B6F47}
+  .round-icon.c-gray{background:rgba(120,120,128,.55);border:1px dashed rgba(255,255,255,.15)}
+  .round-icon.c-purple{background:#5856D6}
+  .round-icon.c-red2{background:#FF3B30}
+  .round-icon.c-black{background:#1C1C1E;border:1px solid rgba(255,255,255,.08)}
+  .round-icon.c-orange{background:#FF9500}
+  .grid-cell .nm{margin-top:8px;font-size:13px;color:#fff;opacity:.9;text-align:center;padding:0 2px}
+  /* vignette 彩色 halo + 底部渐隐雾 */
+  .vignette-mask{position:absolute;left:0;right:0;top:230px;bottom:52px;pointer-events:none;overflow:hidden}
+  .halo{position:absolute;width:150px;height:150px;border-radius:75px;opacity:.28;filter:blur(26px)}
+  .halo.r{background:#FF3B30;left:12px;top:10px}
+  .halo.b{background:#0A84FF;left:105px;top:14px}
+  .halo.o{background:#FF9500;right:16px;top:10px}
+  .halo.g{background:#34C759;left:60px;bottom:0}
+  .halo.p{background:#5856D6;right:80px;bottom:6px}
+  .fade-fog{
+    position:absolute;left:0;right:0;bottom:0;height:110px;
+    background:linear-gradient(to bottom,transparent 0%,#1C1C1E 80%);
+  }
+  .bottom-bar{
+    position:absolute;left:0;right:0;bottom:0;height:52px;
+    background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.08);
+    border-top-left-radius:18px;border-top-right-radius:18px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  }
+  .bottom-bar .btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.65)}
+  .bottom-bar .btn i{font-size:22px}
+  .bottom-bar .center{font-size:15px;font-weight:500;color:rgba(255,255,255,.55);letter-spacing:.3px}
+
+  /* ==== 全屏·我的小程序中心 ==== */
+  .fs-full{position:absolute;inset:0;background:#1C1C1E;color:#fff;z-index:40;display:flex;flex-direction:column}
+  .fs-header{
+    display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;
+  }
+  .fs-header .back{width:36px;color:rgba(255,255,255,.9);font-size:22px}
+  .fs-header .title{flex:1;text-align:center;font-size:17px;font-weight:600;color:#fff}
+  .fs-header .r{width:36px}
+  .fs-search{margin:6px 18px 0}
+  .fs-seg{
+    margin:14px 18px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  }
+  .seg-item{
+    padding:8px 6px;border-radius:10px;text-align:center;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
+    color:rgba(255,255,255,.65);font-size:13px;font-weight:500;
+  }
+  .seg-item.active{background:rgba(255,255,255,.95);color:#1C1C1E;font-weight:600}
+  .fs-grid-wrap{flex:1;padding:16px 18px 52px;position:relative}
+  .fs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 0}
+  .fs-grid .round-icon{width:64px;height:64px;border-radius:32px}
+  .fs-grid .round-icon i{font-size:30px}
+  .fs-vignette{position:absolute;left:0;right:0;bottom:52px;height:200px;pointer-events:none;overflow:hidden}
+
+  /* ==== 小程序全屏壳 ==== */
+  .miniapp-header{
+    padding:6px 14px 10px;height:54px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border-light);background:#fff;
+  }
+  .miniapp-header .title{font-size:17px;font-weight:600;flex:1}
+  .wechat-capsule{
+    height:26px;border-radius:13px;background:rgba(120,120,128,.12);border:1px solid rgba(60,60,67,.18);
+    display:flex;align-items:center;padding:0 9px;gap:6px;
+  }
+  .wechat-capsule i{font-size:15px;color:#0F0F0F}
+  .wechat-capsule .divider{width:1px;height:14px;background:rgba(60,60,67,.25);margin:0 1px}
+  .miniapp-content{padding:16px;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+  .miniapp-hero{
+    border-radius:20px;padding:24px 20px;color:#fff;display:flex;flex-direction:column;align-items:center;gap:6px;
+    box-shadow:0 10px 24px rgba(0,122,255,.25);
+  }
+  .miniapp-hero.green{background:linear-gradient(135deg,#34C759 0%,#30B355 100%);box-shadow:0 10px 24px rgba(52,199,89,.28)}
+  .miniapp-hero i{font-size:30px}
+  .miniapp-hero h5{margin:2px 0 0;font-size:20px;font-weight:700;letter-spacing:.3px}
+  .miniapp-hero p{margin:0;font-size:13px;color:rgba(255,255,255,.85)}
+  .skeleton-card{
+    background:#fff;border-radius:16px;padding:16px;border:1px solid var(--border-light);
+    display:flex;flex-direction:column;gap:10px;align-items:center;
+  }
+  .skeleton-card .t{font-size:13px;color:var(--text-2);text-align:center}
+  .skeleton-bar{width:100%;height:12px;border-radius:6px;background:linear-gradient(90deg,#EEF0F5 0%,#F7F8FC 50%,#EEF0F5 100%);background-size:200% 100%;animation:shine 1.6s infinite linear}
+  .skeleton-bar.short{width:60%}
+  @keyframes shine{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  /* ==== 任务页 TaskScreen ==== */
+  .task-header{
+    padding:6px 14px 10px;height:54px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border-light);background:rgba(255,255,255,.9);
+  }
+  .task-header .title{flex:1;text-align:center;font-size:17px;font-weight:600}
+  .btn-primary{
+    height:34px;padding:0 12px;border-radius:17px;background:var(--primary);color:#fff;
+    display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;
+  }
+  .task-list{flex:1;padding:12px 16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+  .task-card{
+    background:#fff;border-radius:16px;padding:14px;border:1px solid var(--border-light);
+    box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:10px;
+  }
+  .task-card .head{display:flex;gap:10px;align-items:flex-start}
+  .task-card .ico{
+    width:36px;height:36px;border-radius:10px;background:var(--primary-soft);color:var(--primary);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .task-card .ico i{font-size:18px}
+  .task-card .prompt{flex:1;font-size:14px;font-weight:600;color:var(--text-1);line-height:20px}
+  .task-card .status{
+    padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;
+  }
+  .task-card .status.on{background:rgba(52,199,89,.12);color:var(--success)}
+  .task-card .status.off{background:rgba(120,120,128,.12);color:var(--text-3)}
+  .task-card .meta{display:flex;gap:12px;font-size:12px;color:var(--text-3);flex-wrap:wrap;align-items:center}
+  .task-card .meta .cron{color:var(--primary);font-weight:600;background:var(--primary-soft);padding:3px 8px;border-radius:8px}
+  .task-card .actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .task-card .toggle{display:flex;align-items:center;gap:8px}
+  .task-card .toggle .lbl{font-size:13px;color:var(--text-2)}
+  .switch{
+    position:relative;width:44px;height:26px;border-radius:13px;background:#E5E5EA;transition:background .2s;
+  }
+  .switch.on{background:var(--primary)}
+  .switch::after{
+    content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;
+    box-shadow:0 2px 4px rgba(0,0,0,.18);transition:transform .2s;
+  }
+  .switch.on::after{transform:translateX(18px)}
+  .task-card .btns{display:flex;gap:8px}
+  .btn-ghost{
+    height:32px;padding:0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;
+    font-size:13px;font-weight:600;
+  }
+  .btn-ghost.primary{background:var(--primary-soft);color:var(--primary)}
+  .btn-ghost.danger{background:var(--danger-soft);color:var(--danger)}
+  .btn-ghost i{font-size:15px}
+
+  /* 空态提示 */
+  .empty-hint{padding:20px;text-align:center;font-size:13px;color:var(--text-3)}
+
+  /* 组件库面板 */
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .comp-card{
+    background:#fff;border:1px solid var(--doc-divider);border-radius:var(--radius-lg);padding:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03)
+  }
+  .comp-card h5{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--doc-text);display:flex;align-items:center;gap:8px}
+  .comp-card h5 .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:#F2F2F7;color:#6C6C70;border:1px solid #E5E5EA}
+  .comp-preview{
+    padding:18px;border-radius:12px;background:linear-gradient(180deg,#F7F8FC 0%, #EEF0F5 100%);
+    display:flex;flex-direction:column;align-items:center;gap:14px;border:1px dashed #E5E5EA;
+  }
+  .comp-preview.dark{background:linear-gradient(180deg,#141416 0%, #0A0A0A 100%)}
+  .comp-specs{margin-top:12px;font-size:12px;color:var(--doc-muted);line-height:1.8}
+  .comp-specs code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#F2F2F7;padding:1px 6px;border-radius:6px;font-size:11px;color:#444}
+
+  footer.site{
+    max-width:1680px;margin:30px auto 60px;padding:0 24px;
+    color:var(--doc-muted);font-size:12px;display:flex;align-items:center;justify-content:space-between;
+    border-top:1px solid var(--doc-divider);padding-top:20px;
+  }
+  footer.site .copyhint b{color:var(--primary)}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="inner">
+    <div>
+      <h1>Agent iOS App · Figma UI 设计规格 v1.0</h1>
+      <div class="subtitle">与代码实现逐像素对齐 · 可直接在 Figma 中复制该文档的颜色/尺寸/组件进行细化</div>
+    </div>
+    <nav>
+      <a href="#tokens">设计令牌</a>
+      <a href="#screens">页面规格</a>
+      <a href="#components">组件库</a>
+      <a href="#rules">Figma 规范</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ TOKENS ============ -->
+<section id="tokens">
+  <h2 class="section-title">1. 设计令牌 Design Tokens</h2>
+  <p class="lead">与 <code>apps/mobile/src/theme.ts</code> 完全对齐，Figma 中建立同名 Local Variable 即可做到 Design ↔ Code 单一真相源。</p>
+
+  <h3 class="sub">1.1 浅色主题（聊天 / 任务 / 小程序通用）</h3>
+  <div class="token-grid">
+    <div class="swatch"><div class="patch" style="background:#F2F2F7"><span>BG</span></div><div class="meta"><div class="name">background / 页面底</div><div class="hex">#F2F2F7</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#FFFFFF;border:1px solid #E5E5EA"><span>CARD</span></div><div class="meta"><div class="name">card / 卡片</div><div class="hex">#FFFFFF</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#007AFF"><span>PRIMARY</span></div><div class="meta"><div class="name">primary / 主色</div><div class="hex">#007AFF</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#0A84FF"><span>PRESSED</span></div><div class="meta"><div class="name">primaryPressed / 按下</div><div class="hex">#0A84FF</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#EAF2FF"><span>SOFT</span></div><div class="meta"><div class="name">primarySoft / 主色软底</div><div class="hex">#EAF2FF</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#FF3B30"><span>DANGER</span></div><div class="meta"><div class="name">danger / 危险</div><div class="hex">#FF3B30</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#FDECEA"><span>D-SOFT</span></div><div class="meta"><div class="name">dangerSoft / 危险软底</div><div class="hex">#FDECEA</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#34C759"><span>OK</span></div><div class="meta"><div class="name">success / 成功</div><div class="hex">#34C759</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#FF9500"><span>WARN</span></div><div class="meta"><div class="name">warning / 警告</div><div class="hex">#FF9500</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#1C1C1E"><span>T-1</span></div><div class="meta"><div class="name">textPrimary / 主要文字</div><div class="hex">#1C1C1E</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#6C6C70"><span>T-2</span></div><div class="meta"><div class="name">textSecondary / 次要文字</div><div class="hex">#6C6C70</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#AEAEB2"><span>T-3</span></div><div class="meta"><div class="name">textTertiary / 辅助文字</div><div class="hex">#AEAEB2</div></div></div>
+    <div class="swatch"><div class="patch" style="background:#E5E5EA"><span>BD</span></div><div class="meta"><div class="name">border / 分隔线</div><div class="hex">#E5E5EA</div></div></div>
+  </div>
+
+  <h3 class="sub">1.2 深色主题（Kimi 主页 · 空会话态专属）</h3>
+  <div class="token-grid">
+    <div class="swatch"><div class="patch dark" style="background:#0A0A0A"><span>BG</span></div><div class="meta"><div class="name">home.bg / 主底</div><div class="hex">#0A0A0A</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#121214"><span>SURF</span></div><div class="meta"><div class="name">home.surface / 表面</div><div class="hex">#121214</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#1A1A1E"><span>CHIP</span></div><div class="meta"><div class="name">home.chip / 胶囊底</div><div class="hex">#1A1A1E</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:rgba(255,255,255,0.85);backdrop-filter:blur(4px)"><span>ICON</span></div><div class="meta"><div class="name">home.iconTint / 图标色</div><div class="hex">rgba(255,255,255,0.85)</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#FFFFFF"><span>TITLE</span></div><div class="meta"><div class="name">home.title / 标题</div><div class="hex">#FFFFFF</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:rgba(255,255,255,0.72)"><span>SUB</span></div><div class="meta"><div class="name">home.subtitle / 副标题</div><div class="hex">rgba(255,255,255,0.72)</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:rgba(255,255,255,0.42)"><span>TER</span></div><div class="meta"><div class="name">home.tertiary / 辅助色</div><div class="hex">rgba(255,255,255,0.42)</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#4A7BFF"><span>M-1</span></div><div class="meta"><div class="name">home.mascot / 吉祥物主</div><div class="hex">#4A7BFF</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#6B93FF"><span>M-2</span></div><div class="meta"><div class="name">home.mascotInner / 内高光</div><div class="hex">#6B93FF</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#141416"><span>INP</span></div><div class="meta"><div class="name">home.input / 输入底</div><div class="hex">#141416</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:rgba(255,255,255,0.38)"><span>PH</span></div><div class="meta"><div class="name">home.placeholder / 占位</div><div class="hex">rgba(255,255,255,0.38)</div></div></div>
+    <div class="swatch"><div class="patch dark" style="background:#0A84FF"><span>DOT</span></div><div class="meta"><div class="name">home.dot / 蓝点标记</div><div class="hex">#0A84FF</div></div></div>
+  </div>
+
+  <h3 class="sub">1.3 字体 / 圆角 / 间距 / 阴影 · 统一令牌</h3>
+  <div class="rules" style="margin-top:8px">
+    <table>
+      <thead><tr><th>类别</th><th>Token</th><th>值（Figma / RN）</th><th>典型应用</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4"><b>字体字号</b></td><td>header 17 / 600</td><td><code>17px · w600</code></td><td>顶栏标题 / 小程序页标题</td></tr>
+        <tr><td>body 15 / 400 · LH21</td><td><code>15px · LH 21px</code></td><td>气泡正文、任务 prompt</td></tr>
+        <tr><td>caption 12</td><td><code>12px</code></td><td>状态徽标、任务 Cron、时间</td></tr>
+        <tr><td>small 11</td><td><code>11px</code></td><td>消息时间、免责声明</td></tr>
+        <tr><td rowspan="5"><b>圆角</b></td><td>sm / md / lg / xl / full</td><td><code>8 / 12 / 16 / 20 / 999</code></td><td>小徽章 / 按钮 / 卡片 / 气泡 / 圆形</td></tr>
+        <tr><td>胶囊按钮（任务页「新建」）</td><td><code>h34 · r17</code></td><td>任务页右上主按钮</td></tr>
+        <tr><td>主页输入胶囊</td><td><code>h60 · r30</code></td><td>Kimi 主页底部输入</td></tr>
+        <tr><td>微信胶囊关闭按钮</td><td><code>h26 · r13</code></td><td>全屏小程序右上</td></tr>
+        <tr><td>主页横滑 Prompt 胶囊</td><td><code>h44 · r18</code></td><td>项目 / PPT / 集群…</td></tr>
+        <tr><td rowspan="5"><b>间距</b></td><td>xs / sm / md / lg / xl</td><td><code>4 / 8 / 12 / 16 / 24</code></td><td>统一 4 / 8 栅格</td></tr>
+        <tr><td>页面左右内边距</td><td><code>16</code>（lg）</td><td>聊天页 / 任务页 / 主页</td></tr>
+        <tr><td>卡片内边距</td><td><code>14-16</code></td><td>任务卡片 / Drawer 菜单</td></tr>
+        <tr><td>组件最小点击区</td><td><code>≥44 × 44</code></td><td>iOS HIG 合规</td></tr>
+        <tr><td>组件最小点击区 Android</td><td><code>≥48 × 48</code></td><td>Material 合规</td></tr>
+        <tr><td rowspan="3"><b>阴影</b></td><td>card 阴影</td><td><code>0 2px 8px rgba(0,0,0,.04) · y=2 · R=8 · α=0.08</code></td><td>任务卡片 / 组件卡片</td></tr>
+        <tr><td>bubble 阴影</td><td><code>y=1 · R=6 · α=0.06</code></td><td>Agent 气泡</td></tr>
+        <tr><td>主页输入阴影</td><td><code>y=10 · R=30 · α=0.40</code></td><td>Kimi 主页输入胶囊悬浮</td></tr>
+        <tr><td rowspan="2"><b>动效</b></td><td>Drawer / PullDown 打开</td><td><code>duration 260ms · ease-out-cubic</code></td><td>抽屉 / 下拉面板</td></tr>
+        <tr><td>Drawer / PullDown 关闭</td><td><code>duration 220ms · ease-in-cubic</code></td><td>回弹更快</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SCREENS ============ -->
+<section id="screens">
+  <h2 class="section-title">2. 页面核心规格 · 7 屏全览</h2>
+  <p class="lead">画框严格按 iPhone 14 尺寸 390 × 844（含 Safe Area）制作，Figma 中直接按此 Frame 即可。每屏均附关键尺寸标注。</p>
+
+  <div class="screens">
+
+    <!-- Screen 1: Kimi 深色主页 -->
+    <div class="screen-artboard">
+      <h4><span class="tag dark" style="background:#0A0A0A;color:#fff;border:1px solid rgba(255,255,255,.12)">①</span> Home 主页 · 空会话态 <span class="tag grey">theme-home</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar dark">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#fff"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2l1.1-1.2A10.3 10.3 0 0 0 8 .5 10.3 10.3 0 0 0 1.1 3.5L2.2 4.7C3.7 3.35 5.7 2.5 8 2.5zm0 3.5a5.1 5.1 0 0 1 3.4 1.3l1.1-1.2A7.7 7.7 0 0 0 8 4.5a7.7 7.7 0 0 0-4.5 1.6L4.6 7.3A5.1 5.1 0 0 1 8 6zm0 3.5a2 2 0 0 1 1.4.6L10.5 9a3.9 3.9 0 0 0-5 0L6.6 10.1A2 2 0 0 1 8 9.5z" fill="#fff"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#fff" opacity=".6"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#fff"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="#fff" opacity=".6"/></svg>
+            </div>
+          </div>
+          <div class="screen theme-home">
+            <div class="pull-grabber"></div>
+            <div class="home-header" style="padding-top:54px">
+              <div class="circle-btn"><i class="ph ph-list"></i><span class="dot"></span></div>
+              <div class="spacer"></div>
+              <div class="segment">
+                <div class="item active">快速</div>
+                <div class="item">进阶</div>
+              </div>
+              <div class="spacer"></div>
+              <div class="sound-btn"><i class="ph ph-speaker-x"></i><span class="slash"></span></div>
+            </div>
+            <div class="home-body">
+              <div class="mascot">
+                <span class="eye l"></span><span class="eye r"></span>
+              </div>
+              <div class="greeting">下午好</div>
+              <div class="greeting-sub">今天要和 Agent 一起做点什么</div>
+            </div>
+            <div class="chip-scroll">
+              <div class="home-chip"><i class="ph ph-folder-open"></i>项目</div>
+              <div class="home-chip"><i class="ph ph-file-text"></i>PPT</div>
+              <div class="home-chip"><i class="ph ph-squares-four"></i>集群</div>
+              <div class="home-chip"><i class="ph ph-device-laptop"></i>网站</div>
+              <div class="home-chip"><i class="ph ph-newspaper"></i>论文</div>
+            </div>
+            <div class="home-input-capsule">
+              <div class="plus"><i class="ph ph-plus"></i></div>
+              <div class="field"><div class="ph">尽管问…</div></div>
+              <div class="mic"><i class="ph ph-microphone"></i></div>
+              <div class="home-send"><i class="ph ph-arrow-up"></i></div>
+            </div>
+            <div class="home-disclaimer">内容由 AI 生成</div>
+            <div class="safe-bottom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        关键尺寸（Figma 必须对齐）：<br>
+        · 画框：<code>390 × 844</code>，顶 Safe 54、底 Safe 34<br>
+        · 顶栏圆形按钮：<code>48 × 48 · r24</code>（☰ 按钮左上蓝点 9pt，距按钮 top/left 均 10pt）<br>
+        · 分段控件：<code>h38 · r12</code>，激活项白底 + 1C1C1E 文字<br>
+        · 吉祥物球体：<code>92 × 92 · r46</code>，外圈 inset-6 描边 + 渐变高光<br>
+        · 问候语：<code>24 · w600</code>，副标：<code>15 · 0.72α 白</code><br>
+        · 横滑胶囊：<code>h44 · r18</code>，padding 0 14，间距 10<br>
+        · 大输入胶囊：<code>h60 · r30</code>，左右各 44pt 圆按钮 + 输入浮起发送按钮 <code>48 × 48 · r24 · #007AFF</code><br>
+        · 免责：<code>12pt · 0.42α</code>，距底部 Safe 上沿 4pt
+      </div>
+    </div>
+
+    <!-- Screen 2: 聊天页 -->
+    <div class="screen-artboard">
+      <h4><span class="tag">②</span> 聊天页 · 有消息态 <span class="tag grey">theme-light</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#1C1C1E"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#1C1C1E"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#1C1C1E"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#1C1C1E"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2l1.1-1.2A10.3 10.3 0 0 0 8 .5 10.3 10.3 0 0 0 1.1 3.5L2.2 4.7C3.7 3.35 5.7 2.5 8 2.5zm0 3.5a5.1 5.1 0 0 1 3.4 1.3l1.1-1.2A7.7 7.7 0 0 0 8 4.5a7.7 7.7 0 0 0-4.5 1.6L4.6 7.3A5.1 5.1 0 0 1 8 6zm0 3.5a2 2 0 0 1 1.4.6L10.5 9a3.9 3.9 0 0 0-5 0L6.6 10.1A2 2 0 0 1 8 9.5z" fill="#1C1C1E"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1C1C1E" opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#1C1C1E"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="#1C1C1E" opacity=".35"/></svg>
+            </div>
+          </div>
+          <div class="screen theme-light">
+            <div class="pull-grabber"></div>
+            <div class="chat-header" style="margin-top:54px">
+              <div class="icon-btn"><i class="ph ph-list"></i></div>
+              <div class="chat-title">新对话</div>
+              <div class="icon-btn"><i class="ph ph-plus-circle"></i></div>
+            </div>
+            <div class="chat-list">
+              <div class="time">14:32</div>
+              <div class="msg">
+                <div class="avatar agent"><i class="ph ph-sparkle" style="font-size:14px;color:#007AFF"></i></div>
+                <div class="bubble agent">你好！我是你的 Agent，有什么可以帮你？可以直接说需求，比如「帮我创建一个每小时提醒喝水的定时任务」。</div>
+              </div>
+              <div class="msg user">
+                <div class="avatar user">U</div>
+                <div class="bubble user">帮我写一份项目周报，主题是 React Native UI 重构进展。</div>
+              </div>
+              <div class="msg">
+                <div class="avatar agent"><i class="ph ph-sparkle" style="font-size:14px;color:#007AFF"></i></div>
+                <div class="bubble agent">
+                  <div style="font-weight:600;margin-bottom:6px">📋 周报：React Native UI 重构进展</div>
+                  <div>1. 主页切换为 Kimi 深色空会话主页 ✅</div>
+                  <div>2. 顶部下拉小程序中心 + A2UI 占位壳 ✅</div>
+                  <div>3. 左抽屉会话重命名/归档/删除双通路 ✅</div>
+                  <div>4. 定时任务结果回写当前会话闭环 ✅</div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="avatar agent"><i class="ph ph-sparkle" style="font-size:14px;color:#007AFF"></i></div>
+                <div class="bubble agent" style="padding:10px 14px">
+                  <div class="typing"><span></span><span></span><span></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <div class="chat-input" style="color:#AEAEB2">继续问点什么…</div>
+              <div class="chat-send"><i class="ph ph-arrow-up"></i></div>
+            </div>
+            <div class="safe-bottom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        关键尺寸：<br>
+        · 背景 <code>#F2F2F7</code>、顶栏半透明 + 毛玻璃 <code>α0.85 blur10</code><br>
+        · 头像 <code>30 × 30</code>、气泡最大宽度 <code>260</code>、圆角 <code>20</code>（用户右下小角 6 / Agent 左下小角 6）<br>
+        · 用户气泡：<code>#007AFF 白字</code> · Agent气泡：<code>#FFF + border</code><br>
+        · 时间戳：<code>11 · #AEAEB2</code>，居中展示在大段间隔前<br>
+        · 打字指示器：3 颗 6pt 圆点，timing 1.2s · stagger 0.15s
+      </div>
+    </div>
+
+    <!-- Screen 3: 左抽屉 -->
+    <div class="screen-artboard">
+      <h4><span class="tag">③</span> 左抽屉 · Side Drawer <span class="tag grey">82% 宽</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar dark">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#fff"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2l1.1-1.2A10.3 10.3 0 0 0 8 .5 10.3 10.3 0 0 0 1.1 3.5L2.2 4.7C3.7 3.35 5.7 2.5 8 2.5z" fill="#fff"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#fff" opacity=".6"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#fff"/></svg>
+            </div>
+          </div>
+          <!-- 聊天页背景 -->
+          <div class="screen theme-light" style="opacity:.6">
+            <div class="chat-header" style="margin-top:54px">
+              <div class="icon-btn"><i class="ph ph-list"></i></div>
+              <div class="chat-title">新对话</div>
+              <div class="icon-btn"><i class="ph ph-plus-circle"></i></div>
+            </div>
+          </div>
+          <!-- Drawer 遮罩 -->
+          <div class="drawer-overlay"></div>
+          <!-- Drawer 本体 -->
+          <div class="drawer">
+            <div class="user-row">
+              <div class="avatar user">U</div>
+              <div class="user-name">Agent 用户</div>
+              <div class="badge">v0.1</div>
+            </div>
+            <div class="menu">
+              <div class="menu-item"><i class="ph ph-clock"></i><span>定时任务</span></div>
+              <div class="menu-item"><i class="ph ph-archive"></i><span>归档消息</span></div>
+              <div class="menu-item"><i class="ph ph-info"></i><span>关于</span></div>
+            </div>
+            <div class="section"><div class="title">历史会话</div></div>
+            <div class="new-conv"><i class="ph ph-plus-circle"></i> 新建对话</div>
+            <div class="conv-list">
+              <div class="conv-item active">
+                <div class="title">React Native UI 重构进展</div>
+                <div class="dot"></div>
+                <div class="more"><i class="ph ph-dots-three"></i></div>
+              </div>
+              <div class="conv-item">
+                <div class="title">设计系统 tokens 对齐</div>
+                <div class="more"><i class="ph ph-dots-three"></i></div>
+              </div>
+              <div class="conv-item">
+                <div class="title">A2UI 小程序占位壳演示</div>
+                <div class="more"><i class="ph ph-dots-three"></i></div>
+              </div>
+              <div class="conv-item">
+                <div class="title">Kimi 主页复刻完成稿</div>
+                <div class="more"><i class="ph ph-dots-three"></i></div>
+              </div>
+              <div class="conv-item">
+                <div class="title">定时任务 P0 联调记录</div>
+                <div class="more"><i class="ph ph-dots-three"></i></div>
+              </div>
+            </div>
+            <div class="search"><i class="ph ph-magnifying-glass"></i><input placeholder="搜索会话"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        关键尺寸：<br>
+        · 遮罩 <code>rgba(0,0,0,.45)</code>；抽屉宽 <code>82% · 圆角 24 TR/BR</code>；阴影 <code>12px 0 40px · α=.18</code><br>
+        · 用户区：头像 <code>40×40</code> + 姓名 16 w600 + 版本徽章<br>
+        · 菜单项：<code>h44 · r12</code>，Icon 20 / 文字 15 · <code>#1C1C1E</code><br>
+        · 新建对话：<code>primarySoft 蓝底 + 蓝字 + plus-circle 图标</code><br>
+        · 会话行：<code>标题 14 + active 蓝高亮 + 7pt 蓝圆点 + 右侧 ellipsis 30pt 圆按钮</code>（长按 = 点击 ···）<br>
+        · 搜索：<code>#F2F2F7 · h36 · r12</code>，icon 16 · placeholder <code>#AEAEB2</code>
+      </div>
+    </div>
+
+    <!-- Screen 4: 下拉小程序中心 · v2 深色沉浸式 -->
+    <div class="screen-artboard">
+      <h4><span class="tag">④</span> 顶部下拉 · 小程序中心 <span class="tag grey">v2 · 深灰沉浸式 4 列圆图标</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar dark">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#fff"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2l1.1-1.2A10.3 10.3 0 0 0 8 .5" fill="#fff"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#fff" opacity=".6"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#fff"/></svg>
+            </div>
+          </div>
+          <!-- 主页作为底色，轻度模糊模拟视觉层级 -->
+          <div class="screen theme-home" style="filter:blur(2px)">
+            <div class="home-header" style="padding-top:54px">
+              <div class="circle-btn"><i class="ph ph-list"></i><span class="dot"></span></div>
+              <div class="segment"><div class="item active">快速</div><div class="item">进阶</div></div>
+              <div class="sound-btn"><i class="ph ph-speaker-x"></i><span class="slash"></span></div>
+            </div>
+          </div>
+          <div class="miniapp-overlay"></div>
+          <div class="miniapp-panel">
+            <div class="grab"></div>
+            <div class="immersed">
+              <!-- 1) 标题行：< 我的小程序 整行可点进入全屏中心 -->
+              <div class="im-row" title="点击进入全屏·我的小程序中心">
+                <i class="ph ph-caret-left chev"></i>
+                <div class="t">我的小程序</div>
+                <div class="sp"></div>
+              </div>
+              <!-- 2) 深灰搜索胶囊 -->
+              <div class="search-dark">
+                <i class="ph ph-magnifying-glass"></i>
+                <div class="ph">搜索小程序</div>
+              </div>
+              <!-- 3) 4 列 2 行圆图标（严格对齐参考图顺序） -->
+              <div class="grid4">
+                <div class="grid-cell"><div class="round-icon c-red"><i class="ph ph-shopping-bag"></i></div><div class="nm">大润发优鲜</div></div>
+                <div class="grid-cell"><div class="round-icon c-blue"><i class="ph ph-globe"></i></div><div class="nm">天际通 Go</div></div>
+                <div class="grid-cell"><div class="round-icon c-brown"><i class="ph ph-book-open"></i></div><div class="nm">WiseLibrary</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray"><i class="ph ph-link-simple"></i></div><div class="nm">该账号已绑</div></div>
+                <div class="grid-cell"><div class="round-icon c-purple"><i class="ph ph-briefcase"></i></div><div class="nm">工作啦</div></div>
+                <div class="grid-cell"><div class="round-icon c-red2"><i class="ph ph-graduation-cap"></i></div><div class="nm">小白考研政治</div></div>
+                <div class="grid-cell"><div class="round-icon c-black"><i class="ph ph-medal"></i></div><div class="nm">上岸集训营</div></div>
+                <div class="grid-cell"><div class="round-icon c-orange"><i class="ph ph-device-mobile"></i></div><div class="nm">安徽电信</div></div>
+              </div>
+              <!-- 4) 底部彩色 halo 光斑 + 渐隐灰雾 vignette -->
+              <div class="vignette-mask">
+                <div class="halo r"></div>
+                <div class="halo b"></div>
+                <div class="halo o"></div>
+                <div class="halo g"></div>
+                <div class="halo p"></div>
+                <div class="fade-fog"></div>
+              </div>
+              <!-- 5) 底部分组栏 ☆ 微信(4) ⊕ -->
+              <div class="bottom-bar">
+                <div class="btn"><i class="ph ph-star"></i></div>
+                <div class="center">微信 (4)</div>
+                <div class="btn"><i class="ph ph-plus-circle"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        <b style="color:#1C1C1E">关键视觉（严格对齐参考图）：</b><br>
+        · 面板容器：<code>top 54 · h360 · 背景 #1C1C1E · r20 TL/TR · box-shadow 0 -12 40 α.35</code>；顶部 grabber <code>36×4 · r2 · 白 α.25</code><br>
+        · 标题行：<code>整行可点击</code>，左 chevron 20pt · 居中 17pt w600 白字「我的小程序」；点击 → 收起下拉 → 180ms 打开全屏中心<br>
+        · 搜索框：<code>h44 · r10 · rgba(120,120,128,.24) · hairline 白 α.06</code>；icon 16 · placeholder 15 白 α.45<br>
+        · 宫格：<code>4 列</code>，圆图标 <code>60×60 · r30 · shadow 6×14 α.35</code>，下方 13pt 白字 α.9<br>
+        &nbsp;&nbsp;顺序（严格=参考图 2 行 × 4 列）：<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;R1：大润发优鲜 <code>#E50914</code> · 天际通 Go <code>#0085FF</code> · WiseLibrary <code>#8B6F47</code> · 该账号已绑 <code>灰底+虚线</code><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;R2：工作啦 <code>#5856D6</code> · 小白考研政治 <code>#FF3B30</code> · 上岸集训营 <code>#1C1C1E + hairline</code> · 安徽电信 <code>#FF9500</code><br>
+        · 底部 vignette：5 个彩色 halo（红/蓝/橙/绿/紫）<code>150·r75·blur26·α.28</code> + fadeFog <code>to bottom transparent→#1C1C1E</code><br>
+        · 底部分组栏：<code>h52 · r18 TL/TR · 白 α.04 底 · hairline α.08 顶</code>，三分区 ☆ / 微信(4) / ⊕
+      </div>
+    </div>
+
+    <!-- Screen 4.5 保留编号：Screen 5=小程序全屏壳(A2UI壳)不变 -->
+
+    <!-- Screen 5: 小程序全屏壳 -->
+    <div class="screen-artboard">
+      <h4><span class="tag">⑤</span> 小程序全屏壳 · A2UI 占位 <span class="tag grey">微信胶囊</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#1C1C1E"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#1C1C1E"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#1C1C1E"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#1C1C1E"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2" fill="#1C1C1E"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1C1C1E" opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#1C1C1E"/></svg>
+            </div>
+          </div>
+          <div class="screen theme-app">
+            <div class="miniapp-header" style="margin-top:54px">
+              <div class="icon-btn" style="width:32px;height:32px"><i class="ph ph-caret-left"></i></div>
+              <div class="title">健康饮食</div>
+              <div class="wechat-capsule">
+                <i class="ph ph-dots-three-circle"></i>
+                <div class="divider"></div>
+                <i class="ph ph-x-circle"></i>
+              </div>
+            </div>
+            <div class="miniapp-content">
+              <div class="miniapp-hero green">
+                <i class="ph ph-apple"></i>
+                <h5>健康饮食</h5>
+                <p>记录三餐 · 营养分析 · 体重管理建议</p>
+              </div>
+              <div class="skeleton-card">
+                <div class="t">此界面将由 A2UI 设计规范根据你的需求动态绘制</div>
+                <div class="skeleton-bar"></div>
+                <div class="skeleton-bar short"></div>
+                <div class="skeleton-bar" style="width:80%"></div>
+                <div class="skeleton-bar short"></div>
+              </div>
+              <div class="skeleton-card">
+                <div class="t">A2UI 组件清单（未来实现）</div>
+                <div class="skeleton-bar"></div>
+                <div class="skeleton-bar" style="width:70%"></div>
+                <div class="skeleton-bar short"></div>
+              </div>
+            </div>
+            <div class="safe-bottom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        关键尺寸：<br>
+        · 导航栏：白底 + 底部 <code>hairline #E5E5EA</code>；返回 chevron（24pt）+ 标题居中 + <b>微信胶囊</b><br>
+        · <b>微信胶囊</b>：<code>h26 · r13 · 背景 α0.12 灰 + 1px 描边</code>；内部 3pt 圆点分隔符 14pt 高 hairline；图标 15pt · <code>#0F0F0F</code><br>
+        · Hero 卡：<code>r20</code>，按小程序 tint 色渐变；图标 30 · 标题 20 w700 · 副标 13 · <code>rgba(255,255,255,0.85)</code><br>
+        · 骨架卡：白底 + <code>r16 + border</code>，骨架条 <code>h12 · r6 + shine 1.6s 动画</code>
+      </div>
+    </div>
+
+    <!-- Screen 6: 任务页 -->
+    <div class="screen-artboard">
+      <h4><span class="tag">⑥</span> 定时任务页 · TaskScreen <span class="tag grey">Tamagui 风格</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#1C1C1E"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#1C1C1E"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#1C1C1E"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#1C1C1E"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2" fill="#1C1C1E"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1C1C1E" opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#1C1C1E"/></svg>
+            </div>
+          </div>
+          <div class="screen theme-light">
+            <div class="task-header" style="margin-top:54px">
+              <div class="icon-btn"><i class="ph ph-caret-left"></i></div>
+              <div class="title">定时任务</div>
+              <div class="btn-primary"><i class="ph ph-plus"></i> 新建</div>
+            </div>
+            <div class="task-list">
+              <div class="task-card">
+                <div class="head">
+                  <div class="ico"><i class="ph ph-alarm"></i></div>
+                  <div class="prompt">每小时提醒我起身喝水，并在 18:00 汇总当日饮水量写入当前对话。</div>
+                  <div class="status on">启用</div>
+                </div>
+                <div class="meta">
+                  <span class="cron">0 * * * *</span>
+                  <span>上次运行 08-29 14:00</span>
+                </div>
+                <div class="actions">
+                  <div class="toggle"><span class="lbl">启用</span><div class="switch on"></div></div>
+                  <div class="btns">
+                    <div class="btn-ghost primary"><i class="ph ph-clock-counter-clockwise"></i>历史</div>
+                    <div class="btn-ghost danger"><i class="ph ph-trash"></i>删除</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="head">
+                  <div class="ico"><i class="ph ph-alarm"></i></div>
+                  <div class="prompt">每天早 9:30 收集昨日 Git Commit 并生成日报草稿到「日报群」会话。</div>
+                  <div class="status off">停用</div>
+                </div>
+                <div class="meta">
+                  <span class="cron">30 9 * * *</span>
+                  <span>上次运行 08-28 09:30 · 成功</span>
+                </div>
+                <div class="actions">
+                  <div class="toggle"><span class="lbl">启用</span><div class="switch"></div></div>
+                  <div class="btns">
+                    <div class="btn-ghost primary"><i class="ph ph-clock-counter-clockwise"></i>历史</div>
+                    <div class="btn-ghost danger"><i class="ph ph-trash"></i>删除</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="head">
+                  <div class="ico"><i class="ph ph-alarm"></i></div>
+                  <div class="prompt">每周一 10:00 自动拉取上周 issues 汇总，生成周报发送到项目管理会话。</div>
+                  <div class="status on">启用</div>
+                </div>
+                <div class="meta">
+                  <span class="cron">0 10 * * 1</span>
+                  <span>上次运行 08-26 10:00 · 成功</span>
+                </div>
+                <div class="actions">
+                  <div class="toggle"><span class="lbl">启用</span><div class="switch on"></div></div>
+                  <div class="btns">
+                    <div class="btn-ghost primary"><i class="ph ph-clock-counter-clockwise"></i>历史</div>
+                    <div class="btn-ghost danger"><i class="ph ph-trash"></i>删除</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="safe-bottom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        关键尺寸：<br>
+        · 卡片：<code>r16 + 1px #E5E5EA 描边 + 阴影 2/8 α0.04</code>；内间距 <code>14</code>；卡片间距 <code>12</code><br>
+        · 头：<code>36pt 圆 icon 盒（r10）+ prompt（14 w600 LH20）+ 状态徽章（11 w600 r999）</code><br>
+        · Meta：Cron 蓝底胶囊（r8 · primarySoft · w600） + 时间 12 · <code>#AEAEB2</code><br>
+        · Switch：<code>44 × 26 · r13</code>，关 <code>#E5E5EA</code> / 开 <code>#007AFF</code>；thumb <code>22</code><br>
+        · 按钮：<code>h32 · r12</code>，图标 15 + 文字 13 w600；primary=蓝底蓝字，danger=红底红字
+      </div>
+    </div>
+
+    <!-- Screen 7: 全屏·我的小程序中心（新增 v2） -->
+    <div class="screen-artboard">
+      <h4><span class="tag">⑦</span> 全屏·我的小程序中心 <span class="tag grey">v2 · 3 Tab 分组 · 与参考图 1:1</span></h4>
+      <div class="phone-wrap">
+        <div class="iphone">
+          <div class="dynamic-island"></div>
+          <div class="status-bar dark">
+            <div>9:41</div>
+            <div class="right">
+              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0" y="6" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="4" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2" width="3" height="8" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="10" rx="1" fill="#fff"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2.3 0 4.3.85 5.8 2.2l1.1-1.2A10.3 10.3 0 0 0 8 .5" fill="#fff"/></svg>
+              <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#fff" opacity=".6"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="#fff"/></svg>
+            </div>
+          </div>
+          <div class="fs-full">
+            <!-- 顶部 SafeArea + 返回 -->
+            <div style="padding-top:54px">
+              <div class="fs-header">
+                <div class="back"><i class="ph ph-caret-left"></i></div>
+                <div class="title">我的小程序</div>
+                <div class="r"></div>
+              </div>
+              <!-- 搜索框 -->
+              <div class="fs-search">
+                <div class="search-dark">
+                  <i class="ph ph-magnifying-glass"></i>
+                  <div class="ph">搜索小程序</div>
+                </div>
+              </div>
+              <!-- 3 段分段 Tab，默认微信 -->
+              <div class="fs-seg">
+                <div class="seg-item">最近使用</div>
+                <div class="seg-item active">微信 (4)</div>
+                <div class="seg-item">Agent 生成</div>
+              </div>
+            </div>
+            <!-- 4 列宫格 + 底部 vignette + 底栏 -->
+            <div class="fs-grid-wrap">
+              <div class="fs-grid">
+                <div class="grid-cell"><div class="round-icon c-red"><i class="ph ph-shopping-bag"></i></div><div class="nm">大润发优鲜</div></div>
+                <div class="grid-cell"><div class="round-icon c-blue"><i class="ph ph-globe"></i></div><div class="nm">天际通 Go</div></div>
+                <div class="grid-cell"><div class="round-icon c-brown"><i class="ph ph-book-open"></i></div><div class="nm">WiseLibrary</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray"><i class="ph ph-link-simple"></i></div><div class="nm">该账号已绑</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray" style="border:1px dashed rgba(255,255,255,.2)"><i class="ph ph-squares-four" style="opacity:.6"></i></div><div class="nm" style="opacity:.55">即将上线</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray" style="border:1px dashed rgba(255,255,255,.2)"><i class="ph ph-squares-four" style="opacity:.6"></i></div><div class="nm" style="opacity:.55">即将上线</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray" style="border:1px dashed rgba(255,255,255,.2)"><i class="ph ph-squares-four" style="opacity:.6"></i></div><div class="nm" style="opacity:.55">即将上线</div></div>
+                <div class="grid-cell"><div class="round-icon c-gray" style="border:1px dashed rgba(255,255,255,.2)"><i class="ph ph-squares-four" style="opacity:.6"></i></div><div class="nm" style="opacity:.55">即将上线</div></div>
+              </div>
+              <div class="fs-vignette">
+                <div class="halo r"></div>
+                <div class="halo b"></div>
+                <div class="halo o"></div>
+                <div class="halo g"></div>
+                <div class="halo p"></div>
+                <div class="fade-fog" style="height:200px"></div>
+              </div>
+              <!-- 底栏 ☆ 微信(4) ⊕ -->
+              <div class="bottom-bar" style="position:absolute;left:-18px;right:-18px;bottom:0">
+                <div class="btn"><i class="ph ph-star"></i></div>
+                <div class="center">微信 (4)</div>
+                <div class="btn"><i class="ph ph-plus-circle"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs" style="margin-top:14px">
+        <b style="color:#1C1C1E">全屏中心规格（参考图 1:1 复刻）：</b><br>
+        · 整页：<code>背景 #1C1C1E</code>；顶 SafeArea 54pt；右上返回 chevron 22pt · 标题 17pt w600 白字居中<br>
+        · 搜索框：<code>h44 · r10 · rgba(120,120,128,.24)</code>；左右 18pt 外边距<br>
+        · 分段 Tab：3 项，尺寸 <code>flex:1 · h36 · r10</code>，未激活 <code>白 α.05 底 / 白 α.65 字</code>；激活 <code>白 .95 底 + #1C1C1E 字 w600</code>；切换项 8pt 间距；Tab 选项 = 最近使用 / 微信(4) / Agent 生成<br>
+        · 宫格：<code>4 列</code>，圆图标 <code>64×64 · r32</code>（比下拉略大 4pt，更有空间感）；微信 Tab 下不足 8 格自动补 <code>灰底虚线 + apps-outline · 即将上线（α.55）</code> 占位<br>
+        · 底部 vignette：同下拉（5 色 halo 150·blur26·α.28）+ 200pt 高 fadeFog<br>
+        · 底栏：同下拉 <code>h52 · r18 · 白 α.04 底 + hairline α.08 顶</code>；中心标题与当前 Tab 强绑定（Tab 切换底栏中心同步更新）
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ COMPONENTS ============ -->
+<section id="components">
+  <h2 class="section-title">3. 组件库 Component Library（Figma 直接做 Master Component）</h2>
+  <p class="lead">覆盖产品中 7 个高复用组件：每个组件都给出「规格 + 状态 + 色值 + 最小点击区」，在 Figma 中做成 Component Set 后可一键换状态。</p>
+
+  <div class="comp-grid">
+
+    <!-- 3.1 按钮 -->
+    <div class="comp-card">
+      <h5>3.1 按钮 Button <span class="tag">4 变体</span></h5>
+      <div class="comp-preview">
+        <div class="btn-primary"><i class="ph ph-plus"></i> 新建（Primary）</div>
+        <div style="height:32px;padding:0 14px;border-radius:16px;background:#EAF2FF;color:#007AFF;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="ph ph-clock-counter-clockwise" style="font-size:15px"></i> 历史（Ghost Blue）</div>
+        <div style="height:32px;padding:0 14px;border-radius:16px;background:#FDECEA;color:#FF3B30;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="ph ph-trash" style="font-size:15px"></i> 删除（Ghost Red）</div>
+        <div style="height:32px;padding:0 14px;border-radius:16px;background:#F2F2F7;color:#6C6C70;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;opacity:.5"><i class="ph ph-lock-key" style="font-size:15px"></i> 已禁用（Disabled）</div>
+      </div>
+      <div class="comp-specs">
+        · Primary：<code>h34 · r17 · #007AFF · 白字 w600 14 · icon 18</code> · 按下态 <code>#0A84FF · pressOpacity 0.85</code><br>
+        · Ghost 蓝/红：<code>h32 · r12 · 软底 + 对应深色字</code><br>
+        · 最小点击：<code>≥44 × 44</code>（当视觉高度不足时，Figma 中用 Hit Slop 4pt 四边补足）
+      </div>
+    </div>
+
+    <!-- 3.2 分段控件 -->
+    <div class="comp-card">
+      <h5>3.2 分段控件 Segmented Control <span class="tag">2 Tab</span></h5>
+      <div class="comp-preview dark" style="padding:24px 18px">
+        <div style="height:38px;padding:3px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);display:flex;gap:2px">
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#fff;color:#1C1C1E;font-weight:600;font-size:14px">快速</div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;color:rgba(255,255,255,.6);font-size:14px">进阶</div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · 容器：<code>h38 · r12</code>；Dark 背景 <code>α0.07 白</code> + 1px <code>α0.06 描边</code><br>
+        · 激活项：<code>h32 · r10 · #FFFFFF</code> · 字 <code>#1C1C1E w600 14</code>；阴影 <code>0 2 6 α.18</code><br>
+        · 非激活：<code>α.6 白 · 14</code>
+      </div>
+    </div>
+
+    <!-- 3.3 输入胶囊 Home -->
+    <div class="comp-card">
+      <h5>3.3 主页输入胶囊 Input Capsule（Home）<span class="tag">Dark</span></h5>
+      <div class="comp-preview dark" style="padding:24px 12px">
+        <div style="position:relative;width:100%;height:60px;border-radius:30px;background:#141416;border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;padding:0 8px;box-shadow:0 10px 30px rgba(0,0,0,.4)">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);color:#fff;display:flex;align-items:center;justify-content:center;margin-right:4px"><i class="ph ph-plus"></i></div>
+          <div style="flex:1;color:rgba(255,255,255,.38);font-size:16px">尽管问…</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);color:#fff;display:flex;align-items:center;justify-content:center"><i class="ph ph-microphone"></i></div>
+          <div style="position:absolute;top:-6px;right:8px;width:48px;height:48px;border-radius:50%;background:#007AFF;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,122,255,.45)"><i class="ph ph-arrow-up"></i></div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · <code>h60 · r30</code>；左右 44pt 圆按钮（<code>r22 · 背景 α0.06</code>）<br>
+        · 输入状态：在胶囊 <b>右上方</b> 绝对定位浮出蓝发送按钮（<code>48 × 48 · r24 · #007AFF</code>，阴影 <code>0 6 18 · α.45</code>）<br>
+        · Placeholder：<code>16 · rgba(255,255,255,.38)</code>
+      </div>
+    </div>
+
+    <!-- 3.4 消息气泡 -->
+    <div class="comp-card">
+      <h5>3.4 消息气泡 Message Bubble <span class="tag">User / Agent</span></h5>
+      <div class="comp-preview">
+        <div style="width:100%;display:flex;flex-direction:column;gap:10px;max-width:320px">
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div style="width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid #E5E5EA;display:flex;align-items:center;justify-content:center;color:#007AFF"><i class="ph ph-sparkle"></i></div>
+            <div style="max-width:220px;padding:10px 14px;border-radius:20px;border-bottom-left-radius:6px;background:#fff;border:1px solid #E5E5EA;font-size:15px;line-height:21px;color:#1C1C1E">Agent 气泡：白底 + 细描边 + 左下小直角，最大宽 260pt。</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;justify-content:flex-end">
+            <div style="max-width:220px;padding:10px 14px;border-radius:20px;border-bottom-right-radius:6px;background:#007AFF;color:#fff;font-size:15px;line-height:21px">用户气泡：纯蓝底 + 白字，右下小直角。</div>
+            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#FF9500,#FF3B30);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">U</div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · Padding：<code>10 × 14</code>；圆角 <code>r20</code>，单侧小角 <code>r6</code><br>
+        · 字号行高：<code>15 · LH21</code>；最大宽度 260pt<br>
+        · 配合 Avatar 30pt + 气泡间间距 <code>10</code>；同一用户多条消息时可省略头像（进阶优化）
+      </div>
+    </div>
+
+    <!-- 3.5 主页快捷胶囊 -->
+    <div class="comp-card">
+      <h5>3.5 快捷 Prompt 胶囊 Quick Chip <span class="tag">横滑</span></h5>
+      <div class="comp-preview dark" style="padding:20px 12px">
+        <div style="display:flex;gap:10px;overflow-x:auto;padding:4px 2px">
+          <div style="flex-shrink:0;height:44px;padding:0 14px;border-radius:18px;background:#1A1A1E;border:1px solid rgba(120,120,128,.18);display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.85);font-size:14px;font-weight:500;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)"><i class="ph ph-folder-open" style="font-size:18px"></i> 项目</div>
+          <div style="flex-shrink:0;height:44px;padding:0 14px;border-radius:18px;background:#1A1A1E;border:1px solid rgba(120,120,128,.18);display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.85);font-size:14px;font-weight:500"><i class="ph ph-file-text" style="font-size:18px"></i> PPT</div>
+          <div style="flex-shrink:0;height:44px;padding:0 14px;border-radius:18px;background:#1A1A1E;border:1px solid rgba(120,120,128,.18);display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.85);font-size:14px;font-weight:500"><i class="ph ph-squares-four" style="font-size:18px"></i> 集群</div>
+          <div style="flex-shrink:0;height:44px;padding:0 14px;border-radius:18px;background:#1A1A1E;border:1px solid rgba(120,120,128,.18);display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.85);font-size:14px;font-weight:500"><i class="ph ph-device-laptop" style="font-size:18px"></i> 网站</div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · <code>h44 · r18</code>；padding <code>0 14</code>；图标 18 · 字 14 w500 · <code>rgba(255,255,255,.85)</code><br>
+        · 背景 <code>#1A1A1E + 1px rgba(120,120,128,.18)</code>；内阴影顶部 <code>inset 0 1 0 α.04</code><br>
+        · Figma 中 Auto Layout：Horizontal，gap=10，左右超出允许 Clip；对应「Horizontal Scroll Container」实例
+      </div>
+    </div>
+
+    <!-- 3.6 Switch 开关 -->
+    <div class="comp-card">
+      <h5>3.6 Switch 开关 <span class="tag">iOS 风格</span></h5>
+      <div class="comp-preview">
+        <div style="display:flex;gap:24px;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+            <div style="position:relative;width:44px;height:26px;border-radius:13px;background:#E5E5EA">
+              <div style="position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.18)"></div>
+            </div>
+            <span style="font-size:11px;color:#6C6C70">Off</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+            <div style="position:relative;width:44px;height:26px;border-radius:13px;background:#007AFF">
+              <div style="position:absolute;top:2px;left:20px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.18)"></div>
+            </div>
+            <span style="font-size:11px;color:#6C6C70">On</span>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · 尺寸 <code>44 × 26 · r13</code>；Thumb <code>22</code>，位置切换 translateX 18pt<br>
+        · Off 轨道：<code>#E5E5EA</code> · On：<code>#007AFF</code>；Thumb：<code>#FFF + shadow 2/4 α.18</code><br>
+        · 动效：<code>transition .2s ease</code>，与 Tamagui TSwitch 同尺寸
+      </div>
+    </div>
+
+    <!-- 3.7 任务卡片 -->
+    <div class="comp-card">
+      <h5>3.7 任务卡片 Task Card <span class="tag">3 行结构</span></h5>
+      <div class="comp-preview" style="padding:14px">
+        <div style="width:100%;background:#fff;border-radius:16px;border:1px solid #E5E5EA;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:14px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:36px;height:36px;border-radius:10px;background:#EAF2FF;color:#007AFF;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ph ph-alarm" style="font-size:18px"></i></div>
+            <div style="flex:1;font-size:14px;font-weight:600;color:#1C1C1E;line-height:20px">每小时提醒我起身喝水，并在 18:00 汇总当日饮水量写入当前对话。</div>
+            <div style="padding:3px 8px;border-radius:999px;background:rgba(52,199,89,.12);color:#34C759;font-size:11px;font-weight:600;flex-shrink:0">启用</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:12px;color:#AEAEB2">
+            <span style="color:#007AFF;font-weight:600;background:#EAF2FF;padding:3px 8px;border-radius:8px">0 * * * *</span>
+            <span>上次运行 08-29 14:00</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;color:#6C6C70">启用</span>
+              <div style="position:relative;width:44px;height:26px;border-radius:13px;background:#007AFF"><div style="position:absolute;top:2px;left:20px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.18)"></div></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="height:32px;padding:0 10px;border-radius:12px;background:#EAF2FF;color:#007AFF;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="ph ph-clock-counter-clockwise" style="font-size:15px"></i>历史</div>
+              <div style="height:32px;padding:0 10px;border-radius:12px;background:#FDECEA;color:#FF3B30;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="ph ph-trash" style="font-size:15px"></i>删除</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="comp-specs">
+        · 3 行结构：<b>头（Icon 36 + Prompt + Status）+ Meta（Cron + 上次运行）+ Actions（Switch + 历史/删除按钮）</b><br>
+        · Status 徽章 2 变体：<code>启用 · 绿 rgba(52,199,89,.12) + #34C759</code> / <code>停用 · 灰 rgba(120,120,128,.12) + #AEAEB2</code><br>
+        · Figma 中建议建立 <code>Task Card / Status=启用|停用 · IsLast=true|false</code> 四变体组件集
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ RULES ============ -->
+<section id="rules">
+  <h2 class="section-title">4. Figma 落地规范（复制到 Figma 时必须做的 5 件事）</h2>
+  <div class="rules">
+    <table>
+      <thead><tr><th>#</th><th>事项</th><th>怎么做</th><th>为什么重要</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><b>建立 Local Variables（同 theme.ts 命名）</b></td><td>Variables → Color / Number 按 §1 逐 token 建立；颜色命名空间 <code>color/light/*</code> 和 <code>color/home/*</code>；圆角 <code>radius/sm~full</code>；字号 <code>type/header, body, caption, small</code>；间距 <code>space/xs~xl</code></td><td>Tokens 单一真相源，后续改 design 直接同步 RN theme.ts，不再两边改魔法值</td></tr>
+        <tr><td>2</td><td><b>Frame 统一尺寸：390 × 844（iPhone 14）</b></td><td>所有 Screen 基于一个 Master Frame；图层分：<code>Dynamic Island</code> / <code>Status Bar</code> / <code>Safe Top 54</code> / <code>Content</code> / <code>Safe Bottom 34</code></td><td>避免各屏画框大小不一；开发者拿到 1:1 标注可直接实现</td></tr>
+        <tr><td>3</td><td><b>7 个组件全部做成 Component Set</b></td><td>按 §3 规格建立 Component Set + Variants（如 <code>Button / Type=Primary|Ghost-Blue|Ghost-Red · State=Default|Pressed|Disabled</code>）</td><td>后续新增页面直接拖拽复用；UI 改动一处全文件同步</td></tr>
+        <tr><td>4</td><td><b>Auto Layout + 8pt Grid 强制启用</b></td><td>所有列表/卡片/顶栏使用 Auto Layout（H/V）；Padding、Gap 全部从 space tokens 取，禁止 3/5/7 等奇数间距</td><td>和 RN 代码 StyleSheet 的 spacing tokens 完全对齐；降低「Figma 13px、代码 12px」这类随机偏差</td></tr>
+        <tr><td>5</td><td><b>两主题隔离的 Style Library</b></td><td>在 Figma 中建立 <b>Light Style / Home Style</b> 两套 Color Style；主页组件必须使用 Home Style；聊天/任务/小程序页必须使用 Light Style；禁止混用</td><td>避免在同一页面随机出现深/浅色风格不一致；保持主页深、聊天浅的双主题契约</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">4.1 下一阶段 Figma 可扩展的页面（本规格未画，但代码中已有路径/交互入口）</h3>
+  <div class="rules">
+    <table>
+      <thead><tr><th>页面</th><th>功能描述</th><th>关键规格建议</th></tr></thead>
+      <tbody>
+        <tr><td>任务「新建」Bottom Sheet</td><td>Cron 输入 + Prompt 多行 + 创建</td><td>沿用 TaskScreen 主色/圆角；Cron 字段附预设胶囊（每小时/每日/每周），Prompt 给 example placeholder</td></tr>
+        <tr><td>任务历史 Runs 页</td><td>成功/失败/运行中 状态 + 输出</td><td>时间轴式（Run 1 ↓ Run 2），Success=#34C759 / Failed=#FF3B30 / Running=#FF9500，Dot + 竖线 Timeline 组件</td></tr>
+        <tr><td>会话 ··· 操作菜单（重命名·归档·删除）</td><td>Drawer 会话行点击/长按弹出</td><td>iOS Action Sheet 规格：圆角 14，标题 13 · 选项 17 · 删除项 red + w500；cancel 单独一条 + 4 gap</td></tr>
+        <tr><td>新建会话 · 空白聊天页首次 Peek 动画</td><td>下拉面板开到 40% 停 320ms 收回</td><td>Figma Prototype：After delay 650ms → Overlay 下拉面板（h=0.4×320）→ 320ms 后收回；首次播放一次</td></tr>
+        <tr><td>快速 / 进阶（主页分段控件）真实内容差异</td><td>进阶模式更多 prompt 胶囊 + 附加系统提示词</td><td>Figma 做 2 个变体（默认 5 胶囊 · 进阶 8 胶囊+附加 icon）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer class="site">
+  <div>© Agent iOS App · Figma UI 规格 v1.0 · 与 <code>apps/mobile/src/theme.ts</code> 对齐 · 逐像素可复现</div>
+  <div class="copyhint">复制色值到 Figma → 在 Variables 中使用 <b>hex / rgab</b> 格式直接导入</div>
+</footer>
+
+</body>
+</html>
