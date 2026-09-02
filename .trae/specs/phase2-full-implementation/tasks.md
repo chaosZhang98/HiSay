@@ -8,7 +8,7 @@
 - [x] SubTask 1.2: 删除 `infrastructure/agent/agent-gateway.ts`
 - [x] SubTask 1.3: 更新 `pi-agent.gateway.ts` 的 import 路径
 - [x] SubTask 1.4: 更新 `send-message.usecase.ts` 的 import 路径
-- [x] SubTask 1.5: 运行 `pnpm --filter @agent/web typecheck` 验证
+- [x] SubTask 1.5: 运行 `pnpm --filter @hisay/web typecheck` 验证
 
 ## Task 2: 补全基础设施配置
 

@@ -1,2 +1,2 @@
-export * from "./agui";
+export * from "./a2ui";
 export * from "./types";

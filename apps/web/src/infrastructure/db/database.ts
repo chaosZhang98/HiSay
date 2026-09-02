@@ -32,6 +32,7 @@ function runMigrations(db: Database.Database) {
     "003-conversation-device.sql",
     "004-app-store.sql",
     "005-task-context.sql",
+    "006-activity-messages.sql",
   ];
   const applied = db
     .prepare("SELECT filename FROM _migrations")

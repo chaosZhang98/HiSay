@@ -18,7 +18,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useChatStore } from "../store/chat-store";
-import { wsClient } from "../lib/websocket-client";
+import type { ChatTimelineItem } from "../store/chat-store";
+import { A2UIRenderer } from "../a2ui/A2UIRenderer";
+import { useSurfaceStore } from "../a2ui/surface-store";
 import AgentMarkdown from "../components/AgentMarkdown";
 import { Avatar } from "../components/Avatar";
 import { TypingIndicator } from "../components/TypingIndicator";
@@ -27,21 +29,20 @@ import PullDownMenu, { PullDownMenuHandle } from "../components/PullDownMenu";
 import { MiniAppCenter, MyMiniApps } from "../components/MiniAppPanel";
 import { colors, radius, spacing, shadows, typography } from "../theme";
 import { triggerHaptic } from "../lib/haptic";
-import { createUuid } from "../lib/uuid";
 import {
-  requestNotificationPermission,
-  showTaskResultNotification,
-} from "../lib/notifications";
+  bootstrapSession,
+  createConversation,
+  deleteConversation,
+  loadArchived,
+  openConversation,
+  refreshConversations,
+  renameConversation,
+  runAgentTurn,
+} from "../lib/chat-session";
+import { requestNotificationPermission } from "../lib/notifications";
+import { startTaskAlertPoller } from "../lib/task-alerts";
 
-const WS_URL = "ws://192.168.0.100:8080";
-const DEVICE_ID = "ios-device-1";
-
-interface DisplayMessage {
-  id: string;
-  role: "user" | "agent";
-  content: string;
-  createdAt?: string;
-}
+type DisplayMessage = ChatTimelineItem;
 
 /** 消息时间：当天显示 HH:mm，跨天显示日期。 */
 function formatTime(iso: string): string {
@@ -76,6 +77,26 @@ export default function ChatScreen({
   const listAtTopRef = useRef(true);
   const [pullScrollEnabled, setPullScrollEnabled] = useState(true);
   const miniAppMenuRef = useRef<PullDownMenuHandle>(null);
+  const streamWatchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearStreamWatch = () => {
+    if (streamWatchRef.current) {
+      clearTimeout(streamWatchRef.current);
+      streamWatchRef.current = null;
+    }
+  };
+
+  const armStreamWatch = () => {
+    clearStreamWatch();
+    streamWatchRef.current = setTimeout(() => {
+      const state = useChatStore.getState();
+      if (!state.isStreaming) return;
+      useChatStore.getState().failStreaming(
+        state.streamingMessageId,
+        "等待回复超时。请确认已连接后再发一次。",
+      );
+    }, 45_000);
+  };
   // 左边缘右滑手势（左拉）：从屏幕左边缘约 40pt 内向右滑唤出抽屉（热区更宽，降低误判）
   const edgeStartX = useRef(0);
   const edgePan = useMemo(
@@ -103,104 +124,23 @@ export default function ChatScreen({
     isStreaming,
     streamingMessageId,
     conversationId,
-    addMessage,
-    appendMessage,
-    appendDelta,
-    finishStreaming,
-    loadSession,
-    loadConversations,
-    upsertConversation,
     setConnectionStatus,
     clearMessages,
     toggleConversationList,
-    loadArchivedMessages,
     clearArchivedMessages,
-    setStreaming,
   } = useChatStore();
 
   useEffect(() => {
-    wsClient.setListeners({
-      onStatusChange: (status) => {
-        setConnectionStatus(status);
-        // 连接成功后拉取会话列表
-        if (status === "connected") {
-          wsClient.fetchConversations();
-        }
-      },
-      onDelta: (delta, messageId) => {
-        appendDelta(delta, messageId);
-      },
-      onComplete: (messageId) => {
-        finishStreaming(messageId);
-      },
-      onError: (_code, message) => {
-        console.error("Agent error:", message);
-        setStreaming(false);
-      },
-      onTaskResult: (result) => {
-        showTaskResultNotification(result);
-      },
-      // 定时任务执行结论回写当前会话：追加一条 agent 消息实时显示
-      onTaskResultMessage: (convId, message) => {
-        if (convId === useChatStore.getState().conversationId) {
-          appendMessage({
-            id: message.id,
-            role: message.role,
-            content: message.content,
-            createdAt: message.createdAt,
-          });
-        }
-      },
-      // 服务端注册/新建会话后返回会话 ID 与历史消息，恢复/初始化对话
-      onSession: (convId, history) => {
-        loadSession(
-          convId,
-          history.map((m) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-            createdAt: m.createdAt,
-          })),
-        );
-      },
-      // 切换会话后返回目标会话的历史消息
-      onHistory: (convId, history) => {
-        loadSession(
-          convId,
-          history.map((m) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-            createdAt: m.createdAt,
-          })),
-        );
-      },
-      onConversationList: (list) => {
-        loadConversations(list);
-      },
-      // 重命名/删除会话后同步列表
-      onConversationChanged: (conv, deleted) => {
-        if (deleted) {
-          upsertConversation(conv, true);
-          if (conv.id === useChatStore.getState().conversationId) {
-            clearMessages();
-            useChatStore.setState({ conversationId: "" });
-          }
-        } else {
-          upsertConversation(conv);
-        }
-      },
-      onArchivedMessages: (convId, history) => {
-        loadArchivedMessages(convId, history);
-      },
-    });
-
     requestNotificationPermission();
-
-    wsClient.connect(WS_URL, DEVICE_ID);
-
+    setConnectionStatus("reconnecting");
+    void bootstrapSession().catch((err) => {
+      console.error(err);
+      setConnectionStatus("disconnected");
+    });
+    const stopAlerts = startTaskAlertPoller();
     return () => {
-      wsClient.disconnect();
+      clearStreamWatch();
+      stopAlerts();
     };
   }, []);
 
@@ -211,27 +151,14 @@ export default function ChatScreen({
     const text = raw.trim();
     // 等待服务端 session_info 提供会话 ID 后才能发送
     if (!text || isStreaming || !conversationId) return false;
+    if (connectionStatus !== "connected") {
+      Alert.alert("未连接", "请等右上角显示已连接后再发送。");
+      return false;
+    }
 
-    const msgId = createUuid();
-    addMessage({
-      id: msgId,
-      role: "user",
-      content: text,
-      createdAt: new Date().toISOString(),
-    });
     setInput("");
-
-    const agentMsgId = createUuid();
-    addMessage({
-      id: agentMsgId,
-      role: "agent",
-      content: "",
-      createdAt: new Date().toISOString(),
-    });
-    setStreaming(true);
-    useChatStore.setState({ streamingMessageId: agentMsgId });
-
-    wsClient.sendMessage(conversationId, text);
+    void runAgentTurn({ text }).finally(() => clearStreamWatch());
+    armStreamWatch();
     return true;
   };
 
@@ -276,14 +203,16 @@ export default function ChatScreen({
     toggleConversationList(false);
     if (convId === conversationId) return;
     clearMessages();
-    wsClient.fetchHistory(convId);
+    useSurfaceStore.getState().clear();
+    void openConversation(convId);
   };
 
   // 新建会话：清空当前消息，服务端创建后返回新的 session_info
   const handleNewConversation = () => {
     toggleConversationList(false);
     clearMessages();
-    wsClient.createConversation();
+    useSurfaceStore.getState().clear();
+    void createConversation();
   };
 
   // 打开重命名弹窗
@@ -294,7 +223,7 @@ export default function ChatScreen({
 
   const submitRename = () => {
     if (!renaming || !renameInput.trim()) return;
-    wsClient.renameConversation(renaming.id, renameInput.trim());
+    void renameConversation(renaming.id, renameInput.trim());
     setRenaming(null);
   };
 
@@ -302,7 +231,7 @@ export default function ChatScreen({
   const openArchive = (convId: string) => {
     setArchivedVisible(true);
     clearArchivedMessages();
-    wsClient.fetchArchivedMessages(convId);
+    void loadArchived(convId);
   };
 
   const currentTitle =
@@ -327,6 +256,35 @@ export default function ChatScreen({
   };
 
   const renderMessage = ({ item }: { item: DisplayMessage }) => {
+    if (item.role === "activity") {
+      return (
+        <View style={[styles.msgRow, styles.activityRow]}>
+          <Avatar role="agent" size={30} />
+          <View style={[styles.msgWrap, styles.activityWrap]}>
+            <A2UIRenderer
+              content={item.content}
+              placement="inline"
+              onAction={(action) => {
+                if (!conversationId) return;
+                triggerHaptic("light");
+                void runAgentTurn({
+                  action: {
+                    surfaceId: action.surfaceId,
+                    name: action.name,
+                    sourceComponentId: action.sourceComponentId,
+                    context: action.context,
+                  },
+                });
+              }}
+            />
+            {item.createdAt ? (
+              <Text style={styles.msgTime}>{formatTime(item.createdAt)}</Text>
+            ) : null}
+          </View>
+        </View>
+      );
+    }
+
     const isUser = item.role === "user";
     const isStreamingMsg = item.id === streamingMessageId;
     const showTyping = !isUser && isStreamingMsg && !item.content;
@@ -401,8 +359,8 @@ export default function ChatScreen({
         }
         atTopRef={listAtTopRef}
         onScrollDisabled={setPullScrollEnabled}
-        // 面板高度 = 整屏高度：下拉后直达屏幕底部，而不是悬浮半空的卡片
-        panelHeight={Dimensions.get("window").height}
+        // 紧凑下拉卡片：约半屏，贴合内容高度，避免整屏留白
+        panelHeight={Math.min(400, Math.round(Dimensions.get("window").height * 0.52))}
       >
         <SafeAreaView
           style={[styles.container, home && styles.homeContainer]}
@@ -416,7 +374,7 @@ export default function ChatScreen({
                 <TouchableOpacity
                   style={styles.homeMenuButton}
                   onPress={() => {
-                    wsClient.fetchConversations();
+                    void refreshConversations();
                     triggerHaptic("light");
                     setDrawerOpen(true);
                   }}
@@ -452,7 +410,7 @@ export default function ChatScreen({
                 <TouchableOpacity
                   style={styles.menuEntryButton}
                   onPress={() => {
-                    wsClient.fetchConversations();
+                    void refreshConversations();
                     triggerHaptic("light");
                     setDrawerOpen(true);
                   }}
@@ -781,15 +739,14 @@ export default function ChatScreen({
               text: "删除",
               style: "destructive",
               onPress: () => {
-                if (item.id === conversationId) clearMessages();
-                wsClient.deleteConversation(item.id);
+                void deleteConversation(item.id);
               },
             },
           ]);
         }}
         onAbout={() => {
           setDrawerOpen(false);
-          Alert.alert("关于", "Agent iOS v0.1.0\n基于 MiMo 2.5 Pro");
+          Alert.alert("关于", "HiSay v0.1.0\n基于 MiMo 2.5 Pro");
         }}
       />
       </SafeAreaView>
@@ -869,10 +826,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   msgRowUser: { justifyContent: "flex-end" },
+  activityRow: {
+    alignItems: "flex-start",
+  },
   msgWrap: {
     marginHorizontal: spacing.sm,
     maxWidth: "78%",
     alignItems: "flex-start",
+  },
+  activityWrap: {
+    maxWidth: "78%",
   },
   msgWrapUser: { alignItems: "flex-end" },
   messageBubble: {

@@ -19,35 +19,34 @@ import {
   XStack,
 } from "tamagui";
 import { useChatStore } from "../store/chat-store";
-import { wsClient } from "../lib/websocket-client";
-import type { ScheduledTaskItem, TaskRunItem } from "@agent/shared";
+import { restApi } from "../lib/rest-api";
+import type { ScheduledTaskItem, TaskRunItem } from "@hisay/shared";
 import { colors, radius, spacing, shadows, typography } from "../theme";
 
 export default function TaskScreen({ onBack }: { onBack: () => void }) {
-  const { tasks, taskRuns, activeTaskId, loadTaskRuns } = useChatStore();
+  const { tasks, taskRuns, loadTasks, upsertTask, loadTaskRuns } = useChatStore();
 
   const [createVisible, setCreateVisible] = useState(false);
   const [cronInput, setCronInput] = useState("");
   const [promptInput, setPromptInput] = useState("");
   const [historyVisible, setHistoryVisible] = useState(false);
 
-  // 进入页面时刷新任务列表
   useEffect(() => {
-    wsClient.listTasks();
-  }, []);
+    void restApi.listTasks().then((result) => loadTasks(result.tasks));
+  }, [loadTasks]);
 
   const handleCreate = () => {
     const cron = cronInput.trim();
     const prompt = promptInput.trim();
     if (!cron || !prompt) return;
-    wsClient.createTask(cron, prompt);
+    void restApi.createTask(cron, prompt).then((result) => upsertTask(result.task));
     setCronInput("");
     setPromptInput("");
     setCreateVisible(false);
   };
 
   const openHistory = (taskId: string) => {
-    wsClient.fetchTaskRuns(taskId);
+    void restApi.taskRuns(taskId).then((result) => loadTaskRuns(taskId, result.runs));
     setHistoryVisible(true);
   };
 
@@ -94,7 +93,9 @@ export default function TaskScreen({ onBack }: { onBack: () => void }) {
           <TSwitch
             size="$2"
             checked={item.isEnabled}
-            onCheckedChange={() => wsClient.toggleTask(item.id)}
+            onCheckedChange={() => {
+              void restApi.toggleTask(item.id).then((result) => upsertTask(result.task));
+            }}
             backgroundColor={colors.primary}
             borderColor={colors.primary}
           >
@@ -123,7 +124,9 @@ export default function TaskScreen({ onBack }: { onBack: () => void }) {
             backgroundColor={colors.dangerSoft}
             paddingHorizontal={10}
             icon={<Ionicons name="trash-outline" size={15} color={colors.danger} />}
-            onPress={() => wsClient.deleteTask(item.id)}
+            onPress={() => {
+              void restApi.deleteTask(item.id).then(() => upsertTask(item, true));
+            }}
           >
             <TText fontSize={13} color={colors.danger} fontWeight="500">
               删除

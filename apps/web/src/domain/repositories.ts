@@ -1,4 +1,5 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
+import type { ActivityMessage } from "./activity-message";
 import type { Conversation } from "./conversation";
 import type { Message } from "./message";
 import type { ScheduledTask } from "./scheduled-task";
@@ -21,6 +22,12 @@ export interface IMessageRepository {
   save(message: Message): Promise<void>;
   deleteByConversationId(conversationId: UUID): Promise<void>;
   archiveBefore(date: Date): Promise<number>;
+}
+
+export interface IActivityMessageRepository {
+  findByConversationId(conversationId: UUID): Promise<ActivityMessage[]>;
+  save(activity: ActivityMessage): Promise<void>;
+  deleteByConversationId(conversationId: UUID): Promise<void>;
 }
 
 export interface IScheduledTaskRepository {

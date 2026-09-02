@@ -1,7 +1,7 @@
 import type Database from "better-sqlite3";
 import { Buffer } from "node:buffer";
 import zlib from "node:zlib";
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import type { IMessageRepository } from "../../domain/repositories";
 import { Message } from "../../domain/message";
 import type { MessageRole } from "../../domain/message";

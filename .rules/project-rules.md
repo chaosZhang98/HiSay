@@ -1,14 +1,14 @@
-# Project Rules: agent-ios-app
+# Project Rules: HiSay
 
 ## Project Overview
 
 Personal AI Agent chat assistant for iOS.
 
-- **Mobile**: Expo + React Native (iOS focused)
-- **Backend**: Next.js 15 web dashboard + standalone Node.js WebSocket service
-- **Agent engine**: Pi SDK (`@earendil-works/pi-coding-agent`)
+- **Mobile**: Expo SDK 54 + React Native 0.81 (iOS focused)
+- **Backend**: Next.js 15 web dashboard + standalone Node.js HTTP/SSE service
+- **Agent engine**: Pi SDK (`@earendil-works/pi-coding-agent`) behind `IAgentRuntime`
 - **Model**: MiMo v2.5 Pro (OpenAI-compatible API, pay-per-use)
-- **Client-server protocol**: AG-UI / A2UI over WebSocket
+- **Client-server protocol**: Official AG-UI HTTP + SSE
 - **Monorepo**: pnpm workspace
 
 ## Global Constraints

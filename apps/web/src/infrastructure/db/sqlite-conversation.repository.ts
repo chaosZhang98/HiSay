@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import type { IConversationRepository } from "../../domain/repositories";
 import { Conversation } from "../../domain/conversation";
 

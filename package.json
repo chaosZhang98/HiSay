@@ -1,8 +1,8 @@
 {
-  "name": "agent-ios-app",
+  "name": "hisay",
   "private": true,
   "version": "0.1.0",
-  "description": "Personal AI Agent chat assistant for iOS",
+  "description": "HiSay — personal AI agent chat assistant for iOS",
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
@@ -20,5 +20,11 @@
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
+  },
+  "pnpm": {
+    "overrides": {
+      "react-native-reanimated": "4.1.7",
+      "react-native-worklets": "0.5.1"
+    }
   }
 }

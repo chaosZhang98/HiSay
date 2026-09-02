@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>备注卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            max-width: 1200px;
+        }
+
+        /* 基础卡片样式 */
+        .memo-card {
+            width: 320px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .memo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        }
+
+        /* 风格1: 简约现代 */
+        .card-modern {
+            background: #ffffff;
+        }
+
+        .card-modern .card-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-modern .card-header h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-modern .card-header .icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .card-modern .card-body {
+            padding: 24px;
+        }
+
+        .card-modern .memo-text {
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .card-modern .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .card-modern .tag {
+            background: #ede9fe;
+            color: #7c3aed;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .card-modern .date {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* 风格2: 便签风格 */
+        .card-sticky {
+            background: #fef9c3;
+            position: relative;
+        }
+
+        .card-sticky::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .card-sticky .card-body {
+            padding: 40px 28px 28px;
+        }
+
+        .card-sticky .memo-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-sticky .memo-text {
+            color: #78350f;
+            font-size: 15px;
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        .card-sticky .card-footer {
+            padding: 16px 28px 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .card-sticky .priority {
+            display: flex;
+            gap: 4px;
+        }
+
+        .card-sticky .priority span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f59e0b;
+        }
+
+        .card-sticky .priority span.active {
+            background: #dc2626;
+        }
+
+        /* 风格3: 暗色主题 */
+        .card-dark {
+            background: #1f2937;
+            border: 1px solid #374151;
+        }
+
+        .card-dark .card-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid #374151;
+        }
+
+        .card-dark .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .card-dark .user-info h3 {
+            color: #f9fafb;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-dark .user-info span {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .card-dark .card-body {
+            padding: 24px;
+        }
+
+        .card-dark .memo-text {
+            color: #d1d5db;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .card-dark .card-actions {
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid #374151;
+        }
+
+        .card-dark .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card-dark .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .card-dark .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .card-dark .btn-secondary {
+            background: #374151;
+            color: #d1d5db;
+        }
+
+        .card-dark .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        /* 风格4: 渐变玻璃 */
+        .card-glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-glass .card-body {
+            padding: 28px;
+        }
+
+        .card-glass .memo-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .card-glass .memo-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .card-glass .memo-text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .card-glass .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .card-glass .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34d399, #10b981);
+            border-radius: 3px;
+            width: 68%;
+            transition: width 1s ease;
+        }
+
+        .card-glass .progress-info {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        /* 风格5: 极简线条 */
+        .card-minimal {
+            background: #fafafa;
+            border: 2px solid #e5e7eb;
+        }
+
+        .card-minimal .card-body {
+            padding: 32px 28px;
+        }
+
+        .card-minimal .quote-mark {
+            font-size: 48px;
+            line-height: 1;
+            color: #d1d5db;
+            margin-bottom: 8px;
+            font-family: Georgia, serif;
+        }
+
+        .card-minimal .memo-text {
+            color: #1f2937;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 24px;
+            font-family: Georgia, 'Times New Roman', serif;
+        }
+
+        .card-minimal .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-minimal .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .card-minimal .author-info h4 {
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .card-minimal .author-info span {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        /* 风格6: 彩色条纹 */
+        .card-colorful {
+            background: white;
+            position: relative;
+        }
+
+        .card-colorful::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(180deg, #f43f5e, #8b5cf6, #3b82f6, #10b981);
+        }
+
+        .card-colorful .card-body {
+            padding: 28px 28px 28px 32px;
+        }
+
+        .card-colorful .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-colorful .category {
+            background: #fef2f2;
+            color: #ef4444;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-colorful .bookmark {
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .card-colorful .bookmark:hover {
+            color: #f59e0b;
+        }
+
+        .card-colorful .memo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .card-colorful .memo-text {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .card-colorful .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .card-colorful .tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .card-colorful .tag-blue {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .card-colorful .tag-green {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .card-colorful .tag-purple {
+            background: #faf5ff;
+            color: #a855f7;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .card-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .memo-card {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <!-- 风格1: 简约现代 -->
+        <div class="memo-card card-modern">
+            <div class="card-header">
+                <h3>📝 会议备注</h3>
+                <div class="icon">✏️</div>
+            </div>
+            <div class="card-body">
+                <p class="memo-text">
+                    下周三前完成产品原型设计，与设计团队对齐视觉规范。重点关注用户反馈的三个核心痛点，优先级排序后同步给开发组。
+                </p>
+                <div class="card-footer">
+                    <span class="tag">重要</span>
+                    <span class="date">2024年12月20日</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 风格2: 便签风格 -->
+        <div class="memo-card card-sticky">
+            <div class="card-body">
+                <div class="memo-title">
+                    💡 灵感记录
+                </div>
+                <p class="memo-text">
+                    "好的设计是尽可能少的设计。更少，但更好——因为它专注于本质方面，产品不会被非本质的东西所累。回归纯粹，回归简单。"
+                </p>
+            </div>
+            <div class="card-footer">
+                <div class="priority">
+                    <span class="active"></span>
+                    <span class="active"></span>
+                    <span class="active"></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 风格3: 暗色主题 -->
+        <div class="memo-card card-dark">
+            <div class="card-header">
+                <div class="avatar">👤</div>
+                <div class="user-info">
+                    <h3>项目备忘</h3>
+                    <span>技术架构评审</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="memo-text">
+                    微服务拆分方案已通过评审，下一步需要完成数据库迁移计划。注意保持 API 向后兼容性，灰度发布策略需要与运维团队确认。
+                </p>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary">标记完成</button>
+                <button class="btn btn-secondary">稍后提醒</button>
+            </div>
+        </div>
+
+        <!-- 风格4: 渐变玻璃 -->
+        <div class="memo-card card-glass">
+            <div class="card-body">
+                <div class="memo-icon">🎯</div>
+                <h3 class="memo-title">季度目标进度</h3>
+                <p class="memo-text">
+                    用户增长目标已完成 68%，距离季度结束还有 3 周。需要加大市场推广力度，重点关注社交媒体渠道转化率。
+                </p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-info">
+                    <span>进度 68%</span>
+                    <span>剩余 22 天</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 风格5: 极简线条 -->
+        <div class="memo-card card-minimal">
+            <div class="card-body">
+                <div class="quote-mark">"</div>
+                <p class="memo-text">
+                    每一次迭代都是向完美靠近的一步。保持耐心，持续改进，让用户的声音指引我们的方向。
+                </p>
+                <div class="card-footer">
+                    <div class="author-avatar">L</div>
+                    <div class="author-info">
+                        <h4>李明</h4>
+                        <span>产品经理 · 今日笔记</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 风格6: 彩色条纹 -->
+        <div class="memo-card card-colorful">
+            <div class="card-body">
+                <div class="card-header">
+                    <span class="category">待办事项</span>
+                    <span class="bookmark">🔖</span>
+                </div>
+                <h3 class="memo-title">周报整理清单</h3>
+                <p class="memo-text">
+                    汇总本周完成的 5 个功能模块，整理测试报告和性能数据，准备下周的客户演示 Demo。
+                </p>
+                <div class="tags">
+                    <span class="tag tag-blue">周报</span>
+                    <span class="tag tag-green">进行中</span>
+                    <span class="tag tag-purple">高优先级</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

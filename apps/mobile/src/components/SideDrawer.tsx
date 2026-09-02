@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import type { ConversationItem } from "@agent/shared";
+import type { ConversationItem } from "@hisay/shared";
 import { Avatar } from "./Avatar";
 import { colors, radius, spacing } from "../theme";
 
@@ -127,7 +127,7 @@ export function SideDrawer({
             <View style={styles.userRow}>
               <Avatar role="user" size={40} />
               <Text style={styles.userName} numberOfLines={1}>
-                Agent 用户
+                HiSay
               </Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>v0.1</Text>

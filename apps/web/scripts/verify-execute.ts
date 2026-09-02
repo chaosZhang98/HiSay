@@ -6,7 +6,7 @@ import { SQLiteConversationRepository } from "../src/infrastructure/db/sqlite-co
 import { SQLiteMessageRepository } from "../src/infrastructure/db/sqlite-message.repository";
 import { SQLiteScheduledTaskRepository } from "../src/infrastructure/db/sqlite-scheduled-task.repository";
 import { SQLiteTaskRunRepository } from "../src/infrastructure/db/sqlite-task-run.repository";
-import { PiAgentGateway } from "../src/infrastructure/agent/pi-agent.gateway";
+import { PiAgentRuntime } from "../src/infrastructure/agent/pi/pi-agent.runtime";
 import { RunScheduledTaskUseCase } from "../src/application/run-scheduled-task.usecase";
 import { ScheduledTask } from "../src/domain/scheduled-task";
 import { Conversation } from "../src/domain/conversation";
@@ -17,7 +17,7 @@ const tasks = new SQLiteScheduledTaskRepository(db);
 const taskRuns = new SQLiteTaskRunRepository(db);
 const conversations = new SQLiteConversationRepository(db);
 const messages = new SQLiteMessageRepository(db);
-const agent = new PiAgentGateway();
+const agent = new PiAgentRuntime();
 const useCase = new RunScheduledTaskUseCase(tasks, taskRuns, agent, conversations, messages, 90_000);
 
 const dump = () =>

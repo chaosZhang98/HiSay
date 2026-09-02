@@ -1,4 +1,4 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 
 /** 允许 Agent 创建的数据字段类型白名单。 */
 export type AppFieldType = "text" | "integer" | "real" | "boolean" | "date";

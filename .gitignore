@@ -9,6 +9,11 @@ build
 .expo
 expo-env.d.ts
 
+# Expo prebuild (regenerate with npx expo prebuild)
+ios/
+android/
+Pods/
+
 # Environment
 .env
 .env.local

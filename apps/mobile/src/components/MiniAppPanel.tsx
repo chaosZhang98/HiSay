@@ -2,15 +2,21 @@ import React, { useMemo, useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  initialWindowMetrics,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "../theme";
+import { colors, spacing } from "../theme";
 import { triggerHaptic } from "../lib/haptic";
 
 /** 小程序元信息：未来由服务端 / A2UI 规范下发，当前为静态示例。 */
@@ -206,23 +212,19 @@ export function MiniAppCenter({
   /** 点击标题进入全屏「我的小程序」中心页 */
   onEnterFullScreen?: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const [active, setActive] = useState<MiniAppMeta | null>(null);
   const [search, setSearch] = useState("");
 
   const previewList = useMemo(() => {
-    // 通用占位：第1行 5 个「小程序」占位 · 第2行 最近使用（示例）
-    //   第1行：小程序 · 小程序 · 小程序 · 小程序 · 小程序
-    //   第2行：小白考研政治 · 上岸集训营 · 安徽电信
+    // 下拉菜单只展示「最近使用」：4 列紧凑宫格，避免整排灰色占位
     const preferredOrder = [
-      "wechat-ph-1",
-      "wechat-ph-2",
-      "wechat-ph-3",
-      "wechat-ph-4",
-      "wechat-ph-5",
       "xiaobai-kaoyan",
       "shang-an",
       "ah-telecom",
+      "health-diet",
+      "body-shape",
+      "smart-todo",
+      "more-agent",
     ];
     const merged = preferredOrder
       .map((id) => MINI_APPS.find((a) => a.id === id))
@@ -233,27 +235,25 @@ export function MiniAppCenter({
   }, [search]);
 
   return (
-    <View style={styles.immersivePage}>
-      {/* 标题区：左对齐标题 + 右侧进入全屏中心（简约列表头，无多余留白） */}
+    <View style={styles.sheetPage}>
       <TouchableOpacity
-        style={styles.immersiveTitleRow}
+        style={styles.sheetTitleRow}
         activeOpacity={0.55}
         onPress={() => {
           triggerHaptic("medium");
           onEnterFullScreen?.();
         }}
       >
-        <Text style={styles.immersiveTitle}>我的小程序</Text>
-        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        <Text style={styles.sheetTitle}>我的小程序</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
       </TouchableOpacity>
 
-      {/* 搜索框：浅色圆角搜索 */}
-      <View style={styles.searchBox}>
+      <View style={styles.sheetSearch}>
         <Ionicons
           name="search"
-          size={16}
+          size={15}
           color={colors.textTertiary}
-          style={{ marginRight: 6 }}
+          style={{ marginRight: 8 }}
         />
         <TextInput
           style={styles.searchInput}
@@ -264,41 +264,41 @@ export function MiniAppCenter({
         />
       </View>
 
-      {/* 宫格区：4 列，浅色简约背景，展示常用小程序 */}
-      <View style={styles.gridWrap}>
-        <View style={styles.grid4Col}>
-          {previewList.map((app) => (
-            <AppGridCell
-              key={app.id}
-              app={app}
-              iconSize={60}
-              onPress={() => {
-                if (app.id === "more-agent") {
-                  Alert.alert(
-                    "更多小程序",
-                    "这里的小程序将由 Agent 根据你的需求自动生成（基于 A2UI 设计规范），敬请期待。"
-                  );
-                  return;
-                }
-                setActive(app);
-              }}
-            />
-          ))}
-        </View>
+      <Text style={styles.sheetSection}>最近使用</Text>
+      <View style={styles.sheetGrid}>
+        {previewList.map((app) => (
+          <AppGridCell
+            key={app.id}
+            app={app}
+            iconSize={52}
+            onPress={() => {
+              if (app.id === "more-agent") {
+                Alert.alert(
+                  "更多小程序",
+                  "这里的小程序将由 Agent 根据你的需求自动生成（基于 A2UI 设计规范），敬请期待。"
+                );
+                return;
+              }
+              setActive(app);
+            }}
+          />
+        ))}
       </View>
 
-      {/* 底部 Tab Bar：「☆  微信 (4)  ⊕」—— 参考图底部同款 */}
-      <View style={[styles.bottomBar, { paddingBottom: 12 + insets.bottom }]}>
+      <View style={styles.sheetFooter}>
         <TouchableOpacity style={styles.bottomBarBtn} activeOpacity={0.5}>
-          <Ionicons name="star-outline" size={22} color={colors.textSecondary} />
+          <Ionicons name="star-outline" size={20} color={colors.textTertiary} />
         </TouchableOpacity>
-        <Text style={styles.bottomBarTitle}>小程序</Text>
+        <Text style={styles.sheetFooterLabel}>小程序</Text>
         <TouchableOpacity style={styles.bottomBarBtn} activeOpacity={0.5}>
-          <Ionicons name="add-circle-outline" size={24} color={colors.textSecondary} />
+          <Ionicons
+            name="add-circle-outline"
+            size={22}
+            color={colors.textTertiary}
+          />
         </TouchableOpacity>
       </View>
 
-      {/* 点击进入的小程序全屏界面 —— 保留现有 A2UI 壳 */}
       <MiniAppFullShell active={active} onClose={() => setActive(null)} />
     </View>
   );
@@ -493,7 +493,6 @@ export function MyMiniApps({
           </View>
         </View>
 
-        {/* A2UI 小程序全屏壳 */}
         <MiniAppFullShell active={active} onClose={() => setActive(null)} />
       </SafeAreaView>
     </Modal>
@@ -501,8 +500,20 @@ export function MyMiniApps({
 }
 
 /* ==========================================================================
- * 5. 单个小程序打开时的 A2UI 全屏壳（保留原有已确认的胶囊关闭 + Hero）
+ * 5. 单个小程序全屏进出场外壳（对标微信：底部滑入 + 右上角胶囊关闭）
  * ========================================================================== */
+/** 微信胶囊约 87×32；标题左右各留约 96，避免与行内胶囊撞字。 */
+const CAPSULE_HEIGHT = 32;
+
+/** 微信关闭标：圆环套实心小圆，不用普通 X。 */
+function WeChatCloseMark({ color }: { color: string }) {
+  return (
+    <View style={[styles.wechatCloseRing, { borderColor: color }]}>
+      <View style={[styles.wechatCloseDot, { backgroundColor: color }]} />
+    </View>
+  );
+}
+
 function MiniAppFullShell({
   active,
   onClose,
@@ -510,66 +521,74 @@ function MiniAppFullShell({
   active: MiniAppMeta | null;
   onClose: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+  // fullScreen Modal 里 SafeAreaView 经常量到 insets.top === 0；
+  // 用窗口度量 / iOS 刘海下限兜底，把自定义 UI 压到状态栏下方。
+  const topInset =
+    insets.top > 0
+      ? insets.top
+      : initialWindowMetrics?.insets.top || (Platform.OS === "ios" ? 47 : 0);
+
   return (
     <Modal
       visible={active !== null}
       animationType="slide"
+      presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.appPage} edges={["top"]}>
-        {active ? (
-          <>
-            <View style={styles.appNav}>
+      <View
+        style={[
+          styles.shellRoot,
+          { paddingTop: topInset, paddingBottom: insets.bottom },
+        ]}
+      >
+        <View style={styles.shellNav}>
+          <Text style={styles.shellNavTitle} numberOfLines={1}>
+            {active?.name ?? ""}
+          </Text>
+          <View style={styles.shellCapsuleAnchor}>
+            <View style={styles.shellCapsule}>
               <TouchableOpacity
-                onPress={onClose}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons
-                  name="chevron-back"
-                  size={24}
-                  color={colors.textPrimary}
-                />
-              </TouchableOpacity>
-              <Text style={styles.appNavTitle} numberOfLines={1}>
-                {active.name}
-              </Text>
-              <TouchableOpacity
-                style={styles.capsule}
-                onPress={onClose}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.shellCapsuleBtn}
                 activeOpacity={0.5}
+                onPress={() => {
+                  triggerHaptic("light");
+                  Alert.alert("更多", "小程序菜单稍后上线。");
+                }}
+                accessibilityLabel="更多"
               >
                 <Ionicons
-                  name="ellipsis-horizontal-circle"
-                  size={15}
+                  name="ellipsis-horizontal"
+                  size={16}
                   color={colors.textPrimary}
                 />
-                <View style={styles.capsuleDivider} />
-                <Ionicons name="close-circle" size={15} color={colors.textPrimary} />
+              </TouchableOpacity>
+              <View style={styles.shellCapsuleDivider} />
+              <TouchableOpacity
+                style={styles.shellCapsuleBtn}
+                activeOpacity={0.5}
+                onPress={() => {
+                  triggerHaptic("medium");
+                  onClose();
+                }}
+                accessibilityLabel="关闭小程序"
+              >
+                <WeChatCloseMark color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
 
-            <View style={styles.appBody}>
-              <View
-                style={[styles.appHero, { backgroundColor: active.tint }]}
-              >
-                <Ionicons name={active.icon} size={30} color="#FFFFFF" />
-                <Text style={styles.appHeroTitle}>{active.name}</Text>
-                {active.desc ? (
-                  <Text style={styles.appHeroDesc}>{active.desc}</Text>
-                ) : null}
-              </View>
-              <View style={styles.skeletonCard}>
-                <Text style={styles.skeletonText}>
-                  此界面将由 A2UI 设计规范动态绘制
-                </Text>
-                <View style={styles.skeletonBar} />
-                <View style={[styles.skeletonBar, styles.skeletonBarShort]} />
-              </View>
-            </View>
-          </>
-        ) : null}
-      </SafeAreaView>
+        <ScrollView
+          style={styles.shellScroll}
+          contentContainerStyle={styles.shellScrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {active?.desc ? (
+            <Text style={styles.shellDesc}>{active.desc}</Text>
+          ) : null}
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
@@ -578,7 +597,62 @@ function MiniAppFullShell({
  * StyleSheet
  * ========================================================================== */
 const styles = StyleSheet.create({
-  /* ---- 下拉面板：浅色简约（与主页暖米白统一） ---- */
+  /* ---- 下拉面板：贴合主页暖米白的紧凑卡片 ---- */
+  sheetPage: {
+    flex: 1,
+    backgroundColor: colors.home.bg,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+  },
+  sheetTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 10,
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.home.title,
+  },
+  sheetSearch: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 40,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: colors.home.input,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.home.inputBorder,
+  },
+  sheetSection: {
+    marginTop: 16,
+    marginBottom: 10,
+    fontSize: 12,
+    fontWeight: "500",
+    color: colors.home.tertiary,
+    letterSpacing: 0.4,
+  },
+  sheetGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  sheetFooter: {
+    marginTop: 8,
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  sheetFooterLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: colors.textTertiary,
+  },
+
+  /* ---- 全屏中心页沿用原结构 ---- */
   immersivePage: {
     flex: 1,
     backgroundColor: colors.background,
@@ -620,10 +694,9 @@ const styles = StyleSheet.create({
 
   /* ---- 宫格 4 列 ---- */
   gridWrap: {
-    marginTop: 24,
+    marginTop: 18,
     position: "relative",
-    minHeight: 200,
-    // 撑满面板剩余高度：面板为整屏高度时，底部栏贴到屏幕底部而非悬浮内容下方
+    minHeight: 160,
     flex: 1,
   },
   gridWrapFull: { marginTop: 18 },
@@ -632,16 +705,16 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   gridCell: {
-    width: "25%", // 4 列
+    width: "25%",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 14,
   },
   gridLabel: {
-    marginTop: 8,
-    fontSize: 13,
+    marginTop: 6,
+    fontSize: 11,
     color: colors.textSecondary,
     textAlign: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   roundIcon: {
     alignItems: "center",
@@ -746,70 +819,88 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* ---- 小程序全屏 A2UI 壳（原有已确认契约，仅微调）---- */
-  appPage: { flex: 1, backgroundColor: colors.background },
-  appNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  /* ---- 小程序进出场外壳：状态栏留空 + 44pt 导航行 + 行内胶囊 ---- */
+  shellRoot: {
+    flex: 1,
+    backgroundColor: colors.home.bg,
+  },
+  shellNav: {
+    height: 44,
+    justifyContent: "center",
+    backgroundColor: colors.home.bg,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
-    backgroundColor: "#FFFFFF",
   },
-  appNavTitle: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    fontSize: 17,
+  shellNavTitle: {
+    textAlign: "center",
+    fontSize: 16,
     fontWeight: "600",
     color: colors.textPrimary,
+    paddingHorizontal: 96,
   },
-  capsule: {
+  shellCapsuleAnchor: {
+    position: "absolute",
+    right: 10,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
+  shellCapsule: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 9,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "rgba(120,120,128,0.12)",
+    height: CAPSULE_HEIGHT,
+    borderRadius: CAPSULE_HEIGHT / 2,
+    backgroundColor: "rgba(255,255,255,0.82)",
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(60,60,67,0.18)",
+    borderColor: "rgba(60,60,67,0.22)",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 0.5 },
+      },
+      android: { elevation: 2 },
+      default: {},
+    }),
   },
-  capsuleDivider: {
+  shellCapsuleBtn: {
+    width: 43,
+    height: CAPSULE_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shellCapsuleDivider: {
     width: StyleSheet.hairlineWidth,
-    height: 14,
-    backgroundColor: "rgba(60,60,67,0.25)",
-    marginHorizontal: 7,
+    height: 18,
+    backgroundColor: "rgba(60,60,67,0.22)",
   },
-  appBody: { flex: 1, padding: spacing.lg },
-  appHero: {
-    borderRadius: radius.xl,
+  wechatCloseRing: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.6,
     alignItems: "center",
-    paddingVertical: spacing.xl,
+    justifyContent: "center",
+  },
+  wechatCloseDot: {
+    width: 6.5,
+    height: 6.5,
+    borderRadius: 3.25,
+  },
+  shellScroll: {
+    flex: 1,
+    backgroundColor: colors.home.bg,
+  },
+  shellScrollContent: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+    minHeight: 1400,
   },
-  appHeroTitle: {
-    marginTop: spacing.sm,
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#FFFFFF",
+  shellDesc: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textSecondary,
   },
-  appHeroDesc: { marginTop: 4, fontSize: 13, color: "rgba(255,255,255,0.8)" },
-  skeletonCard: {
-    marginTop: spacing.lg,
-    borderRadius: radius.lg,
-    backgroundColor: "#FFFFFF",
-    padding: spacing.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    alignItems: "center",
-  },
-  skeletonText: { fontSize: 13, color: colors.textTertiary },
-  skeletonBar: {
-    alignSelf: "stretch",
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "rgba(120,120,128,0.12)",
-    marginTop: spacing.md,
-  },
-  skeletonBarShort: { alignSelf: "center", width: "55%" },
 });

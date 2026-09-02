@@ -19,11 +19,13 @@ fi
 # 同步到 .trae/rules
 mkdir -p "$TRAE_DIR"
 cp "$RULES_DIR"/*.md "$TRAE_DIR/" 2>/dev/null || true
+cp "$RULES_DIR"/*.mdc "$TRAE_DIR/" 2>/dev/null || true
 echo "✅ .trae/rules 已更新"
 
 # 同步到 .cursor/rules
 mkdir -p "$CURSOR_DIR"
 cp "$RULES_DIR"/*.md "$CURSOR_DIR/" 2>/dev/null || true
+cp "$RULES_DIR"/*.mdc "$CURSOR_DIR/" 2>/dev/null || true
 echo "✅ .cursor/rules 已更新"
 
 echo ""

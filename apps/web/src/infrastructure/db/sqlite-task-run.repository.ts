@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import type { ITaskRunRepository } from "../../domain/repositories";
 import { TaskRun } from "../../domain/task-run";
 import type { TaskRunStatus } from "../../domain/task-run";

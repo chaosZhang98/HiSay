@@ -4,20 +4,23 @@ config();
 import { createDatabase } from "../infrastructure/db/database";
 import { SQLiteConversationRepository } from "../infrastructure/db/sqlite-conversation.repository";
 import { SQLiteMessageRepository } from "../infrastructure/db/sqlite-message.repository";
+import { SQLiteActivityMessageRepository } from "../infrastructure/db/sqlite-activity-message.repository";
 import { SQLiteScheduledTaskRepository } from "../infrastructure/db/sqlite-scheduled-task.repository";
 import { SQLiteTaskRunRepository } from "../infrastructure/db/sqlite-task-run.repository";
 import { SQLiteDynamicDataStore } from "../infrastructure/db/sqlite-dynamic-data-store";
 import { AppDataService } from "../application/app-data.service";
 import { TaskToolService } from "../application/task-tool.service";
-import { PiAgentGateway } from "../infrastructure/agent/pi-agent.gateway";
-import { SendMessageUseCase } from "../application/send-message.usecase";
+import { ConversationUseCase } from "../application/conversation.usecase";
+import { TaskUseCase } from "../application/task.usecase";
+import { RunConversationUseCase } from "../application/run-conversation.usecase";
+import { HandleSurfaceActionUseCase } from "../application/handle-surface-action.usecase";
 import { RunScheduledTaskUseCase } from "../application/run-scheduled-task.usecase";
+import { PiAgentRuntime } from "../infrastructure/agent/pi/pi-agent.runtime";
 import { CronScheduler } from "../infrastructure/cron/scheduler";
 import { ArchiveService } from "../infrastructure/cron/archive.service";
-import { ConnectionManager } from "../infrastructure/websocket/connection-manager";
-import { startWebSocketServer, toTaskItem } from "../infrastructure/websocket/server";
+import { startHttpServer } from "../infrastructure/http/create-http-server";
 
-const PORT = Number(process.env.WS_PORT ?? 8080);
+const PORT = Number(process.env.PORT ?? process.env.WS_PORT ?? 8080);
 const DB_PATH = process.env.DB_PATH ?? "./data/agent.db";
 const CRON_SCHEDULE = process.env.CRON_SCHEDULE ?? "0 9 * * *";
 
@@ -26,84 +29,46 @@ console.log(`[db] connected to ${DB_PATH}`);
 
 const conversations = new SQLiteConversationRepository(db);
 const messages = new SQLiteMessageRepository(db);
+const activities = new SQLiteActivityMessageRepository(db);
 const scheduledTasks = new SQLiteScheduledTaskRepository(db);
 const taskRuns = new SQLiteTaskRunRepository(db);
 const dynamicDataStore = new SQLiteDynamicDataStore(db);
 const appDataService = new AppDataService(dynamicDataStore);
+const taskToolService = new TaskToolService(scheduledTasks);
 
-const connectionManager = new ConnectionManager();
-
-const taskToolService = new TaskToolService(scheduledTasks, {
-  // Agent 通过工具创建任务后，实时广播 task_changed，客户端任务列表即时刷新
-  onTaskChanged: (task) => {
-    if (!task.deviceId) return;
-    connectionManager.sendToDevice(task.deviceId, {
-      type: "task_changed",
-      task: toTaskItem(task),
-      timestamp: new Date().toISOString(),
-    });
-  },
-});
-
-const agentGateway = new PiAgentGateway(appDataService, taskToolService);
-const sendMessage = new SendMessageUseCase(conversations, messages, agentGateway);
+const agentRuntime = new PiAgentRuntime(appDataService, taskToolService);
+const conversationUseCase = new ConversationUseCase(conversations, messages, activities);
+const taskUseCase = new TaskUseCase(scheduledTasks, taskRuns);
+const runConversation = new RunConversationUseCase(
+  conversations,
+  messages,
+  activities,
+  agentRuntime,
+);
+const handleSurfaceAction = new HandleSurfaceActionUseCase(conversations, runConversation);
 const runTask = new RunScheduledTaskUseCase(
   scheduledTasks,
   taskRuns,
-  agentGateway,
+  agentRuntime,
   conversations,
   messages,
 );
 
-const wss = startWebSocketServer(
+const httpServer = startHttpServer(
   {
-    sendMessage,
-    conversations,
-    messages,
-    scheduledTasks,
-    taskRuns,
-    connectionManager,
+    conversations: conversationUseCase,
+    tasks: taskUseCase,
+    runConversation,
+    handleSurfaceAction,
   },
   PORT,
 );
-console.log(`[ws] listening on port ${PORT}`);
+console.log(`[http] listening on port ${PORT}`);
 
-const scheduler = new CronScheduler(
-  scheduledTasks,
-  runTask,
-  async (result) => {
-    console.log(`[cron] task ${result.taskId} → ${result.status}`);
-
-    // 定向推送回写消息：任务执行结论作为一条 agent 消息实时展示在来源会话
-    if (result.conversationId && result.messageId && result.deviceId) {
-      const message = await messages.findById(result.messageId);
-      if (message) {
-        connectionManager.sendToDevice(result.deviceId, {
-          type: "task_result_message",
-          conversationId: result.conversationId,
-          message: {
-            id: message.id,
-            role: message.role,
-            content: message.content,
-            createdAt: message.createdAt.toISOString(),
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
-
-    // 广播通知事件（驱动 iOS 本地通知）
-    connectionManager.broadcast({
-      type: "task_run_result",
-      taskId: result.taskId,
-      runId: result.runId,
-      status: result.status,
-      output: result.output,
-      error: result.error,
-      timestamp: new Date().toISOString(),
-    });
-  },
-);
+const scheduler = new CronScheduler(scheduledTasks, runTask, async (result) => {
+  console.log(`[cron] task ${result.taskId} → ${result.status}`);
+  // 结果已由 RunScheduledTaskUseCase 回写来源会话；客户端通过 GET /tasks/alerts 拉取并本地通知。
+});
 
 scheduler.start(CRON_SCHEDULE);
 console.log(`[cron] scheduler started with schedule "${CRON_SCHEDULE}"`);
@@ -115,8 +80,7 @@ console.log("[archive] archive service started");
 process.on("SIGTERM", () => {
   scheduler.stop();
   archiveService.stop();
-  connectionManager.stop();
-  wss.close(() => {
+  httpServer.close(() => {
     db.close();
     process.exit(0);
   });

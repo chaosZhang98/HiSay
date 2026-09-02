@@ -1,20 +1,53 @@
 import { create } from "zustand";
 import type {
   ConversationItem,
+  ConversationTimelineItem,
   HistoryMessageItem,
   ScheduledTaskItem,
   TaskRunItem,
-} from "@agent/shared";
+} from "@hisay/shared";
+import { isActivityMessageItem } from "@hisay/shared";
 
-interface ChatMessage {
+export type ChatTextMessage = {
   id: string;
   role: "user" | "agent";
   content: string;
   createdAt?: string;
+};
+
+export type ChatActivityMessage = {
+  id: string;
+  role: "activity";
+  activityType: string;
+  content: Record<string, unknown>;
+  createdAt?: string;
+};
+
+export type ChatTimelineItem = ChatTextMessage | ChatActivityMessage;
+
+export function timelineFromHistory(
+  history: ConversationTimelineItem[],
+): ChatTimelineItem[] {
+  return history.map((item) =>
+    isActivityMessageItem(item)
+      ? {
+          id: item.id,
+          role: "activity" as const,
+          activityType: item.activityType,
+          content: item.content,
+          createdAt: item.createdAt,
+        }
+      : {
+          id: item.id,
+          role: item.role,
+          content: item.content,
+          createdAt: item.createdAt,
+        },
+  );
 }
 
 interface ChatState {
-  messages: ChatMessage[];
+  messages: ChatTimelineItem[];
   conversations: ConversationItem[];
   conversationListVisible: boolean;
   tasks: ScheduledTaskItem[];
@@ -26,11 +59,13 @@ interface ChatState {
   streamingMessageId: string | null;
   conversationId: string;
 
-  addMessage: (msg: ChatMessage) => void;
-  appendMessage: (msg: ChatMessage) => void;
+  addMessage: (msg: ChatTextMessage) => void;
+  appendMessage: (msg: ChatTextMessage) => void;
   appendDelta: (delta: string, messageId: string) => void;
   finishStreaming: (messageId: string) => void;
-  loadSession: (conversationId: string, history: ChatMessage[]) => void;
+  failStreaming: (messageId: string | null, errorText: string) => void;
+  upsertActivity: (item: ChatActivityMessage, replace?: boolean) => void;
+  loadSession: (conversationId: string, history: ChatTimelineItem[]) => void;
   loadConversations: (conversations: ConversationItem[]) => void;
   upsertConversation: (conversation: ConversationItem, deleted?: boolean) => void;
   setConversationId: (conversationId: string) => void;
@@ -77,28 +112,89 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
 
   appendDelta: (delta, messageId) =>
-    set((state) => ({
-      messages: state.messages.map((m) =>
-        m.id === messageId ? { ...m, content: m.content + delta } : m
-      ),
-    })),
+    set((state) => {
+      const existing = state.messages.find((m) => m.id === messageId);
+      if (existing?.role === "activity") return state;
+
+      const placeholder =
+        !existing && state.streamingMessageId
+          ? state.messages.find(
+              (m) => m.id === state.streamingMessageId && m.role === "agent",
+            )
+          : undefined;
+      const target = existing ?? placeholder;
+
+      if (!target) {
+        return {
+          messages: [
+            ...state.messages,
+            { id: messageId, role: "agent", content: delta },
+          ],
+          streamingMessageId: messageId,
+        };
+      }
+      if (target.role === "activity") return state;
+
+      return {
+        streamingMessageId: messageId,
+        messages: state.messages.map((m) =>
+          m.id === target.id && m.role !== "activity"
+            ? { ...m, id: messageId, content: m.content + delta }
+            : m,
+        ),
+      };
+    }),
 
   finishStreaming: (messageId) =>
-    set((state) => ({
-      isStreaming: false,
-      streamingMessageId: null,
-      messages: state.messages.some((m) => m.id === messageId)
-        ? state.messages
-        : [
-            ...state.messages,
-            {
-              id: messageId,
-              role: "agent",
-              content: "",
-              createdAt: new Date().toISOString(),
-            },
-          ],
-    })),
+    set((state) => {
+      const existing = state.messages.find((m) => m.id === messageId);
+      if (existing?.role === "activity") {
+        return { isStreaming: false, streamingMessageId: null };
+      }
+      return {
+        isStreaming: false,
+        streamingMessageId: null,
+        messages: existing
+          ? state.messages
+          : [
+              ...state.messages,
+              {
+                id: messageId,
+                role: "agent",
+                content: "",
+                createdAt: new Date().toISOString(),
+              },
+            ],
+      };
+    }),
+
+  failStreaming: (messageId, errorText) =>
+    set((state) => {
+      const id = messageId ?? state.streamingMessageId;
+      return {
+        isStreaming: false,
+        streamingMessageId: null,
+        messages: state.messages.map((m) =>
+          id && m.id === id && m.role === "agent" && !m.content
+            ? { ...m, content: errorText }
+            : m,
+        ),
+      };
+    }),
+
+  upsertActivity: (item, replace = true) =>
+    set((state) => {
+      const index = state.messages.findIndex((m) => m.id === item.id);
+      if (index >= 0) {
+        const current = state.messages[index];
+        if (current.role !== "activity") return state;
+        if (!replace) return state;
+        const next = [...state.messages];
+        next[index] = item;
+        return { messages: next };
+      }
+      return { messages: [...state.messages, item] };
+    }),
 
   loadSession: (conversationId, history) =>
     set({

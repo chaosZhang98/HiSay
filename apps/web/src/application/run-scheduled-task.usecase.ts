@@ -1,8 +1,8 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import { NotFoundError } from "../domain/errors";
 import { Message } from "../domain/message";
 import { TaskRun } from "../domain/task-run";
-import type { IAgentGateway } from "../domain/agent-gateway";
+import type { IAgentRuntime } from "../domain/agent-runtime";
 import type {
   IConversationRepository,
   IMessageRepository,
@@ -36,7 +36,7 @@ export class RunScheduledTaskUseCase {
   constructor(
     private readonly tasks: IScheduledTaskRepository,
     private readonly taskRuns: ITaskRunRepository,
-    private readonly agent: IAgentGateway,
+    private readonly agent: IAgentRuntime,
     private readonly conversations: IConversationRepository,
     private readonly messages: IMessageRepository,
     private readonly timeoutMs = DEFAULT_TIMEOUT_MS,

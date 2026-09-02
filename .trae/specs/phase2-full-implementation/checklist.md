@@ -64,7 +64,7 @@
 
 ## 整体验证
 
-- [x] `pnpm --filter @agent/shared typecheck` 通过
-- [x] `pnpm --filter @agent/web typecheck` 通过
-- [x] `pnpm --filter @agent/mobile typecheck` 通过
+- [x] `pnpm --filter @hisay/shared typecheck` 通过
+- [x] `pnpm --filter @hisay/web typecheck` 通过
+- [x] `pnpm --filter @hisay/mobile typecheck` 通过
 - [x] 服务启动后可连接 WebSocket 并发送/接收消息

@@ -1,4 +1,4 @@
-# Agent iOS App
+# HiSay
 
 Personal AI Agent chat assistant for iOS.
 
@@ -8,17 +8,17 @@ Personal AI Agent chat assistant for iOS.
 |-------|-------------|
 | Mobile | Expo + React Native (iOS) |
 | Web dashboard | Next.js 15 |
-| Real-time service | Node.js + `ws` + `node-cron` |
+| Real-time service | Node.js HTTP + official AG-UI SSE + `node-cron` |
 | Agent runtime | Pi SDK (`@earendil-works/pi-coding-agent`) |
 | LLM | MiMo v2.5 Pro (OpenAI-compatible) |
-| Client-server protocol | AG-UI / A2UI over WebSocket |
+| Client-server protocol | Official AG-UI HTTP + SSE |
 | Database | SQLite (`better-sqlite3`) with hot/cold archival |
 | Monorepo | pnpm workspaces |
 
 ## Project Structure
 
 ```
-agent-ios-app/
+HiSay/
 ├── .trae/rules/          # TRAE project rules
 ├── AGENTS.md               # AI agent onboarding doc
 ├── apps/
@@ -56,7 +56,7 @@ cp apps/web/.env.example apps/web/.env
 MIMO_BASE_URL=https://api.xiaomimimo.com/v1
 MIMO_API_KEY=your-api-key-here
 MIMO_MODEL=mimo-v2.5-pro
-WS_PORT=8080
+PORT=8080
 DB_PATH=./data/agent.db
 CRON_SCHEDULE=0 9 * * *
 ```
@@ -65,16 +65,16 @@ CRON_SCHEDULE=0 9 * * *
 
 ```bash
 # Build shared package first
-pnpm --filter @agent/shared build
+pnpm --filter @hisay/shared build
 
 # Web dashboard
-pnpm --filter @agent/web dev
+pnpm --filter @hisay/web dev
 
-# Standalone WebSocket + agent service
-pnpm --filter @agent/web dev:service
+# Standalone HTTP + AG-UI SSE agent service
+pnpm --filter @hisay/web dev:service
 
 # iOS mobile app
-pnpm --filter @agent/mobile ios
+pnpm --filter @hisay/mobile ios
 ```
 
 ## Backend Architecture
@@ -83,7 +83,7 @@ The backend follows DDD onion architecture:
 
 ```
   Infrastructure
-  (Pi SDK, SQLite, WebSocket, cron)
+  (Pi SDK, SQLite, HTTP/SSE, cron)
        ↑
   Application
   (use cases)
@@ -92,7 +92,7 @@ The backend follows DDD onion architecture:
   (entities, repository interfaces)
 ```
 
-Inner layers do not depend on outer layers. Pi SDK is wrapped behind `IAgentGateway` so the agent runtime can be swapped later without touching domain logic.
+Inner layers do not depend on outer layers. Pi SDK is wrapped behind `IAgentRuntime` so the agent runtime can be swapped later without touching domain logic. Official AG-UI packages stay in infrastructure.
 
 ## SQLite Archival Strategy
 

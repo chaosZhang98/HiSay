@@ -1,4 +1,4 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import type { IDynamicDataStore, QueryRowsOptions } from "../domain/dynamic-data-store";
 import type { AppField } from "../domain/app-table";
 import type { AppProject } from "../domain/app-project";

@@ -1,4 +1,4 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import type { AppProject } from "./app-project";
 import type { AppTable, AppField } from "./app-table";
 

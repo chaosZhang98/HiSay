@@ -1,18 +1,18 @@
-# Backend Rules: agent-ios-app/web & agent service
+# Backend Rules: HiSay/web & agent service
 
 ## Architecture: DDD Onion
 
 The backend is split into two deployable units:
 
 1. **Next.js 15 web dashboard**: admin UI, health checks, read-only analytics.
-2. **Standalone Node.js service**: WebSocket server + Pi SDK + cron jobs.
+2. **Standalone Node.js service**: HTTP + official AG-UI SSE + Pi SDK + cron jobs.
 
 The standalone service must follow Domain-Driven Design (onion architecture):
 
 ```
   ┌─────────────────────────────────────┐
   │           Infrastructure            │
-  │  (WebSocket server, DB, Pi SDK, cron)│
+  │  (HTTP/SSE, DB, Pi SDK, cron)        │
   ├─────────────────────────────────────┤
   │         Application Layer           │
   │  (use cases, DTOs, mappers)         │
@@ -33,7 +33,7 @@ Inner layers must not depend on outer layers. Outer layers depend on inner layer
 
 - **Domain**: entities (`Conversation`, `Message`, `ScheduledTask`), value objects, domain events, repository interfaces.
 - **Application**: orchestration use cases (`SendMessage`, `CreateScheduledTask`, `RunDueTasks`).
-- **Infrastructure**: concrete repository implementations (SQLite), Pi SDK wrapper (`AgentGateway`), WebSocket server, cron scheduler, MiMo client.
+- **Infrastructure**: concrete repository implementations (SQLite), Pi SDK wrapper (`IAgentRuntime`), official AG-UI HTTP/SSE transport, cron scheduler, MiMo client.
 
 ## Model Configuration: MiMo v2.5 Pro
 
@@ -63,13 +63,12 @@ Inner layers must not depend on outer layers. Outer layers depend on inner layer
 - Delete archived compressed content after 2 years, keeping only summary metadata.
 - Estimate: 4–5 years of personal use stays well under 500 MB.
 
-## WebSocket Server
+## HTTP + AG-UI SSE
 
-1. Use `ws` library.
-2. One connection per authenticated device.
-3. Protocol: AG-UI / A2UI messages encoded as JSON.
-4. Broadcast agent streaming deltas to the owning connection only.
-5. Ping/pong every 30s; drop unresponsive clients after 2 missed pongs.
+1. Agent runs use official `POST /agent` with `Accept: text/event-stream`.
+2. Conversations and tasks use REST on the same process.
+3. Official `@ag-ui/*` packages stay in infrastructure only.
+4. Domain talks `IAgentRuntime` and `SurfaceAction`, not `EventType`.
 
 ## Cron / Scheduled Push
 
@@ -81,7 +80,7 @@ Inner layers must not depend on outer layers. Outer layers depend on inner layer
 ## Pi SDK Integration
 
 1. Wrap Pi SDK (`@earendil-works/pi-coding-agent`) behind an `AgentGateway` interface in the infrastructure layer.
-2. Gateway implements domain interface `IAgentGateway`.
+2. Runtime implements domain interface `IAgentRuntime`.
 3. This allows swapping Pi for another agent runtime later without touching domain logic.
 4. Pi configuration lives in `src/infrastructure/agent/pi.config.ts`.
 
@@ -97,7 +96,7 @@ Required:
 - `MIMO_BASE_URL`
 - `MIMO_API_KEY`
 - `MIMO_MODEL`
-- `WS_PORT`
+- `PORT`
 - `DB_PATH`
 - `CRON_SCHEDULE`
 

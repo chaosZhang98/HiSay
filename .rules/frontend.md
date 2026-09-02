@@ -1,9 +1,9 @@
-# Frontend Rules: agent-ios-app/mobile
+# Frontend Rules: HiSay/mobile
 
 ## Stack
 
-- Expo SDK 52+ with `expo-router`
-- React Native 0.76+ (New Architecture enabled)
+- Expo SDK 54 (`apps/mobile`, entry `index.ts`)
+- React Native 0.81 (New Architecture enabled)
 - TypeScript
 - Tamagui or React Native built-in styling (choose one and stay consistent)
 - React Query / SWR for server state
@@ -16,11 +16,11 @@
 3. Use platform-specific native modules for audio, haptics, and notifications.
 4. Keep bundle size small; tree-shake unused AG-UI message types.
 
-## WebSocket / AG-UI Client
+## HTTP / AG-UI Client
 
-1. Use a single WebSocket connection singleton per active user session.
-2. Serialize/deserialize AG-UI events through the `shared` package types.
-3. Handle reconnection with exponential backoff (max 30s).
+1. Agent runs go through `IAgentTransport` (current impl: official `HttpAgent`).
+2. Chat screens must not import `EventType` from `@ag-ui/core`.
+3. A2UI bricks register on `IComponentCatalog`; do not hard-wire one tool to one screen.
 4. Show connection status in the chat UI.
 
 ## State Management

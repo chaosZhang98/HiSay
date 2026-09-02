@@ -7,8 +7,9 @@
 | 文件 | 用途 |
 |------|------|
 | `project-rules.md` | 项目全局约束（TypeScript、pnpm、导入规则等） |
-| `backend.md` | 后端 DDD 洋葱架构、WebSocket、SQLite 策略 |
+| `backend.md` | 后端 DDD 洋葱架构、HTTP + AG-UI SSE、SQLite 策略 |
 | `frontend.md` | 前端 Expo + React Native 规范 |
+| `expo-sdk.mdc` | Expo SDK 54 版本锁（always apply） |
 
 ## 同步方式
 
@@ -33,7 +34,7 @@
 
 ## 修改规则流程
 
-1. 编辑 `.rules/` 目录下的 `.md` 文件
+1. 编辑 `.rules/` 目录下的 `.md` / `.mdc` 文件
 2. 如果使用 symlink，修改立即生效
 3. 如果使用复制方式，运行 `./sync-rules.sh`
 

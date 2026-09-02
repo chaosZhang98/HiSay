@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 import { AppProject } from "../../domain/app-project";
 import { AppTable } from "../../domain/app-table";
 import type { AppField, AppFieldType } from "../../domain/app-table";

@@ -1,4 +1,4 @@
-import type { UUID } from "@agent/shared";
+import type { UUID } from "@hisay/shared";
 
 export interface ScheduledTaskProps {
   id: UUID;

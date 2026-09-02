@@ -1,6 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import type { TaskRunResultEvent } from "@agent/shared";
+import type { TaskRunResult } from "@hisay/shared";
 
 // 通知在前台也要展示
 Notifications.setNotificationHandler({
@@ -28,7 +28,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 /** 展示一条本地通知（定时任务结果）。 */
 export async function showTaskResultNotification(
-  result: TaskRunResultEvent,
+  result: TaskRunResult,
 ): Promise<void> {
   const title =
     result.status === "success" ? "定时任务完成" : "定时任务执行失败";
