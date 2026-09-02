@@ -1,3 +1,5 @@
+[中文](./README_zh.md) | English
+
 # HiSay
 
 Personal AI Agent chat assistant for iOS.
